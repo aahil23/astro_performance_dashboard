@@ -62,10 +62,10 @@
   --color-brand: var(--brand);
   --color-brand-soft: var(--brand-soft);
   --color-brand-soft-strong: var(--brand-soft-strong);
-  --color-status-poor: var(--status-poor);
-  --color-status-average: var(--status-average);
-  --color-status-good: var(--status-good);
-  --color-status-excellent: var(--status-excellent);
+  --color-status-critical: var(--status-critical);
+  --color-status-stable: var(--status-stable);
+  --color-status-strong: var(--status-strong);
+  --color-status-elite: var(--status-elite);
   --color-status-na: var(--status-na);
 }
 
@@ -84,10 +84,10 @@
   --brand: oklch(0.65 0.20 38);
   --brand-soft: oklch(0.96 0.02 38);
   --brand-soft-strong: oklch(0.88 0.06 38);
-  --status-poor: oklch(0.66 0.22 27);
-  --status-average: oklch(0.85 0.17 90);
-  --status-good: oklch(0.62 0.17 145);
-  --status-excellent: oklch(0.55 0.18 155);
+  --status-critical: #E45858;
+  --status-stable: #D9A404;
+  --status-strong: #2E9E44;
+  --status-elite: #0B7A75;
   --status-na: oklch(0.75 0.02 260);
   --gradient-brand: linear-gradient(180deg, var(--brand-soft) 0%, oklch(1 0 0) 60%);
   --muted: oklch(0.968 0.007 247.896);

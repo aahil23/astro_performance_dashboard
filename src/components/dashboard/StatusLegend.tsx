@@ -1,8 +1,8 @@
 const items = [
-  { label: "Poor", color: "var(--status-poor)" },
-  { label: "Average", color: "var(--status-average)" },
-  { label: "Good", color: "var(--status-good)" },
-  { label: "Excellent", color: "var(--status-excellent)" },
+  { label: "Critical", color: "var(--status-critical)" },
+  { label: "Stable", color: "var(--status-stable)" },
+  { label: "Strong", color: "var(--status-strong)" },
+  { label: "Elite", color: "var(--status-elite)" },
 ];
 
 export function StatusLegend() {

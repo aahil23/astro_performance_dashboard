@@ -3,7 +3,6 @@ import { formatMetricValue, getStatusColor, getStatusLabel } from "@/lib/dashboa
 import { SegmentedBenchmarkBar } from "./SegmentedBenchmarkBar";
 
 export function PerformanceMetricCard({ metric }: { metric: Metric }) {
-  const hasBenchmark = metric.benchmark !== null;
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
       <div className="mb-1 flex items-start justify-between gap-3">
@@ -18,26 +17,14 @@ export function PerformanceMetricCard({ metric }: { metric: Metric }) {
           {getStatusLabel(metric.status)}
         </span>
       </div>
-      {hasBenchmark && (
-        <div className="mt-4">
-          <SegmentedBenchmarkBar score={metric.score} benchmark={metric.benchmark!} />
-        </div>
-      )}
-      <div className="mt-3 space-y-1.5">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Your Score</span>
-          <span className="font-semibold text-foreground">
-            {formatMetricValue(metric.score, metric.unit)}
-          </span>
-        </div>
-        {hasBenchmark && (
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Benchmark</span>
-            <span className="font-medium text-foreground">
-              {formatMetricValue(metric.benchmark!, metric.unit)}
-            </span>
-          </div>
-        )}
+      <div className="mt-4">
+        <SegmentedBenchmarkBar percentile={metric.percentile} />
+      </div>
+      <div className="mt-3 flex items-center justify-between text-sm">
+        <span className="text-muted-foreground">Your Score</span>
+        <span className="font-semibold text-foreground">
+          {formatMetricValue(metric.score, metric.unit)}
+        </span>
       </div>
       <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{metric.description}</p>
       {metric.rank !== null && (
