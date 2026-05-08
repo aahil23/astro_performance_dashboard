@@ -25,10 +25,8 @@ function DashboardPage() {
   const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [impactDismissed, setImpactDismissed] = useState(false);
 
   useEffect(() => {
-    setImpactDismissed(session.isImpactDismissed());
     let active = true;
     getDashboardData()
       .then((d) => active && setData(d))
@@ -41,11 +39,6 @@ function DashboardPage() {
   const logout = () => {
     session.logout();
     navigate({ to: "/" });
-  };
-
-  const dismissImpact = () => {
-    session.dismissImpact();
-    setImpactDismissed(true);
   };
 
   return (
@@ -62,7 +55,7 @@ function DashboardPage() {
           </div>
         )}
       </div>
-      {!impactDismissed && <ImpactOfScoreCard onDismiss={dismissImpact} />}
+      <ImpactOfScoreCard />
     </div>
   );
 }
