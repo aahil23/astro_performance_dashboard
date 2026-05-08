@@ -89,7 +89,7 @@
   --status-strong: #2E9E44;
   --status-elite: #0B7A75;
   --status-na: oklch(0.75 0.02 260);
-  --gradient-brand: linear-gradient(180deg, var(--brand-soft) 0%, oklch(1 0 0) 60%);
+  --gradient-brand: linear-gradient(160deg, hsl(18 89% 95%) 0%, hsl(20 90% 97%) 100%);
   --muted: oklch(0.968 0.007 247.896);
   --muted-foreground: oklch(0.554 0.046 257.417);
   --accent: oklch(0.96 0.02 38);
