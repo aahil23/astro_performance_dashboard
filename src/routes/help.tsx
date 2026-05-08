@@ -7,7 +7,7 @@ export const Route = createFileRoute("/help")({
 
 function HelpPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-brand-soft via-background to-background">
+    <div className="min-h-screen">
       <AppHeader title="Help" showHelp={false} backTo="/dashboard" />
       <div className="mx-auto max-w-md px-4 py-8">
         <h2 className="text-xl font-bold text-foreground">Help</h2>
