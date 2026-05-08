@@ -14,7 +14,7 @@ function LoadingScreen() {
     return () => clearTimeout(t);
   }, [navigate]);
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-brand-soft via-background to-background px-6 text-center">
+    <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
       <div className="relative">
         <img src={logo} alt="" className="h-20 w-20 animate-pulse" />
         <Loader2 className="absolute -bottom-2 -right-2 h-6 w-6 animate-spin text-primary" />
