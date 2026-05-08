@@ -6,7 +6,7 @@ export function CompactMetricsTable({ metrics }: { metrics: Metric[] }) {
     <div className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
       <div className="grid grid-cols-[1fr_auto_auto_auto] gap-3 border-b border-border/60 bg-muted/40 px-4 py-2 text-xs font-medium text-muted-foreground">
         <span>Metric</span>
-        <span className="text-right">Score</span>
+        <span className="text-right">Earnings</span>
         <span className="text-right">Rank</span>
         <span className="text-right">Status</span>
       </div>
