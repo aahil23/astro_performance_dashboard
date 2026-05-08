@@ -18,7 +18,7 @@ export function PerformanceMetricCard({ metric }: { metric: Metric }) {
         </span>
       </div>
       <div className="mt-4">
-        <SegmentedBenchmarkBar percentile={metric.percentile} />
+        <SegmentedBenchmarkBar percentile={metric.percentile} status={metric.status} />
       </div>
       <div className="mt-3 flex items-center justify-between text-sm">
         <span className="text-muted-foreground">Your Score</span>

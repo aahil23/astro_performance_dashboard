@@ -1,5 +1,5 @@
 const items = [
-  { label: "Critical", color: "var(--status-critical)" },
+  { label: "Weak", color: "var(--status-critical)" },
   { label: "Stable", color: "var(--status-stable)" },
   { label: "Strong", color: "var(--status-strong)" },
   { label: "Elite", color: "var(--status-elite)" },
