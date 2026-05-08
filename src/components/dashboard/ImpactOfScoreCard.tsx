@@ -1,5 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 
 export function ImpactOfScoreCard() {
   const [expanded, setExpanded] = useState(true);
@@ -38,9 +39,12 @@ export function ImpactOfScoreCard() {
               <p className="text-xs text-foreground/80">
                 Better scores can help improve visibility and increase future opportunities.
               </p>
-              <button className="mt-3 rounded-full bg-card px-4 py-1.5 text-xs font-semibold text-foreground shadow-sm">
+              <Link
+                to="/impact"
+                className="mt-3 inline-block rounded-full bg-card px-4 py-1.5 text-xs font-semibold text-foreground shadow-sm hover:bg-card/80"
+              >
                 Know More
-              </button>
+              </Link>
             </div>
           </div>
         </div>
