@@ -106,7 +106,7 @@ export function formatMetricValue(score: number, unit: string): string {
 }
 
 export function getStatusLabel(status: MetricStatus): string {
-  return { critical: "Critical", stable: "Stable", strong: "Strong", elite: "Elite", na: "N/A" }[status];
+  return { critical: "Weak", stable: "Stable", strong: "Strong", elite: "Elite", na: "N/A" }[status];
 }
 
 export function getStatusColor(status: MetricStatus): string {
