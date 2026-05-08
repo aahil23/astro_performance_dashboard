@@ -50,7 +50,7 @@ function Index() {
             <label htmlFor="mobile" className="text-sm font-medium text-foreground">
               Mobile number
             </label>
-            <div className="mt-1.5 flex items-center gap-2 rounded-xl border border-input bg-background px-3 focus-within:ring-2 focus-within:ring-ring">
+            <div className="mt-3 text-2xl tracking-tight text-foreground font-extrabold">
               <Phone className="h-4 w-4 text-muted-foreground" />
               <input
                 id="mobile"
