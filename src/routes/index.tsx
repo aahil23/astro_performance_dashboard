@@ -38,7 +38,7 @@ function Index() {
     <main className="flex min-h-screen items-center justify-center px-4 py-10">
       <div className="w-full max-w-md rounded-3xl bg-card p-7 shadow-xl">
         <div className="flex flex-col items-center text-center">
-          <img src={logo} alt="Astro Performance Dashboard" className="h-16 w-16" />
+          <img src={logo} alt="Performance Dashboard" className="h-16 w-16" />
           <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-foreground bg-transparent">Performance Dashboard</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Sign in with your registered mobile number
