@@ -123,6 +123,6 @@ export const SECTION_TITLES: Record<MetricSection, string> = {
   critical_performance: "Critical Performance Parameters",
   profile_performance: "Profile Performance",
   availability_performance: "Average Availability",
-  other_performance: "Other Performance",
+  other_performance: "Earnings Overview",
   online_time: "Online Time",
 };
