@@ -35,7 +35,7 @@ function Index() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-brand-soft via-background to-background px-4 py-10">
+    <main className="flex min-h-screen items-center justify-center px-4 py-10">
       <div className="w-full max-w-md rounded-3xl bg-card p-7 shadow-xl">
         <div className="flex flex-col items-center text-center">
           <img src={logo} alt="AstroLokal" className="h-16 w-16" />
