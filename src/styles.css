@@ -155,7 +155,12 @@
   }
 
   body {
-    background-color: var(--color-background);
     color: var(--color-foreground);
+    background-color: hsl(18 89% 95%);
+    background-image:
+      radial-gradient(ellipse 80% 60% at 50% -10%, hsl(22 95% 88% / 0.7), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 90% 110%, hsl(14 90% 85% / 0.45), transparent 60%),
+      linear-gradient(160deg, hsl(18 89% 95%) 0%, hsl(20 90% 96%) 60%, hsl(18 85% 95%) 100%);
+    background-attachment: fixed;
   }
 }
