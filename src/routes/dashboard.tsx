@@ -42,7 +42,7 @@ function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-brand-soft via-background to-background">
+    <div className="min-h-screen">
       <AppHeader title="Performance Dashboard" backTo="/" />
       <div className="mx-auto max-w-md px-4 pb-40 pt-4">
         {error && <ErrorState message={error} />}
