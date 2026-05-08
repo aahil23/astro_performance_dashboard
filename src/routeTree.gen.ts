@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoadingRouteImport } from './routes/loading'
+import { Route as ImpactRouteImport } from './routes/impact'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const LoadingRoute = LoadingRouteImport.update({
   id: '/loading',
   path: '/loading',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImpactRoute = ImpactRouteImport.update({
+  id: '/impact',
+  path: '/impact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HelpRoute = HelpRouteImport.update({
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
+  '/impact': typeof ImpactRoute
   '/loading': typeof LoadingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
+  '/impact': typeof ImpactRoute
   '/loading': typeof LoadingRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/help': typeof HelpRoute
+  '/impact': typeof ImpactRoute
   '/loading': typeof LoadingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/help' | '/loading'
+  fullPaths: '/' | '/dashboard' | '/help' | '/impact' | '/loading'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/help' | '/loading'
-  id: '__root__' | '/' | '/dashboard' | '/help' | '/loading'
+  to: '/' | '/dashboard' | '/help' | '/impact' | '/loading'
+  id: '__root__' | '/' | '/dashboard' | '/help' | '/impact' | '/loading'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   HelpRoute: typeof HelpRoute
+  ImpactRoute: typeof ImpactRoute
   LoadingRoute: typeof LoadingRoute
 }
 
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/loading'
       fullPath: '/loading'
       preLoaderRoute: typeof LoadingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/impact': {
+      id: '/impact'
+      path: '/impact'
+      fullPath: '/impact'
+      preLoaderRoute: typeof ImpactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help': {
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   HelpRoute: HelpRoute,
+  ImpactRoute: ImpactRoute,
   LoadingRoute: LoadingRoute,
 }
 export const routeTree = rootRouteImport
