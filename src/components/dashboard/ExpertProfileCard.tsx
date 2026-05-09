@@ -1,9 +1,9 @@
 import { LogOut } from "lucide-react";
 import logo from "@/assets/logo.svg";
-import type { Expert } from "@/lib/dashboard-data";
+import type { ApiExpert } from "@/services/dashboardApi";
 
 interface Props {
-  expert: Expert;
+  expert: ApiExpert;
   onLogout: () => void;
 }
 
