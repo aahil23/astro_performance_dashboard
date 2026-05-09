@@ -16,8 +16,8 @@ export function ExpertProfileCard({ expert, onLogout }: Props) {
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-base font-semibold text-foreground">{expert.name}</p>
-          <p className="truncate text-sm text-muted-foreground">{expert.phone_number}</p>
-          <p className="truncate text-xs text-muted-foreground">ID: {expert.expert_id}</p>
+          <p className="truncate text-sm text-muted-foreground">+91 {expert.phone_number}</p>
+          <p className="truncate text-xs text-muted-foreground">Expert ID: {expert.expert_id}</p>
         </div>
         <button
           onClick={onLogout}
