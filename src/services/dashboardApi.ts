@@ -31,8 +31,8 @@ export type SectionKey =
   | "critical_performance"
   | "profile_performance"
   | "availability_performance"
-  | "engagement_overview"
-  | "earnings_overview";
+  | "earnings_overview"
+  | "engagement_overview";
 
 export interface DashboardResponse {
   success: true;
@@ -45,16 +45,16 @@ export const SECTION_ORDER: SectionKey[] = [
   "critical_performance",
   "profile_performance",
   "availability_performance",
-  "engagement_overview",
   "earnings_overview",
+  "engagement_overview",
 ];
 
 export const SECTION_TITLES: Record<SectionKey, string> = {
   critical_performance: "Critical Performance",
   profile_performance: "Profile Performance",
   availability_performance: "Availability Performance",
-  engagement_overview: "Engagement Overview",
   earnings_overview: "Earnings Overview",
+  engagement_overview: "Engagement Overview",
 };
 
 export const METRIC_CONFIG: Record<string, { title: string; description: string }> = {
