@@ -6,15 +6,14 @@ import { StatusLegend } from "@/components/dashboard/StatusLegend";
 import { MetricSection } from "@/components/dashboard/MetricSection";
 import { PerformanceMetricCard } from "@/components/dashboard/PerformanceMetricCard";
 import { CompactMetricsTable } from "@/components/dashboard/CompactMetricsTable";
-import { OnlineTimeSection } from "@/components/dashboard/OnlineTimeSection";
 import { ImpactOfScoreCard } from "@/components/dashboard/ImpactOfScoreCard";
-import { ErrorState } from "@/components/dashboard/States";
 import {
-  getDashboardData,
-  groupMetricsBySection,
+  SECTION_ORDER,
   SECTION_TITLES,
-  type DashboardData,
-} from "@/lib/dashboard-data";
+  type DashboardResponse,
+  type SectionKey,
+} from "@/services/dashboardApi";
+import { dashboardStore } from "@/lib/dashboard-store";
 import { session } from "@/lib/session";
 
 export const Route = createFileRoute("/dashboard")({
@@ -23,78 +22,63 @@ export const Route = createFileRoute("/dashboard")({
 
 function DashboardPage() {
   const navigate = useNavigate();
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<DashboardResponse | null>(() => dashboardStore.get());
 
   useEffect(() => {
-    let active = true;
-    getDashboardData()
-      .then((d) => active && setData(d))
-      .catch((e) => active && setError(String(e)));
-    return () => {
-      active = false;
-    };
-  }, []);
+    if (!data) navigate({ to: "/" });
+  }, [data, navigate]);
 
   const logout = () => {
+    dashboardStore.clear();
     session.logout();
     navigate({ to: "/" });
   };
+
+  if (!data) return null;
 
   return (
     <div className="min-h-screen">
       <AppHeader title="Astro Performance Dashboard" backTo="/" />
       <div className="mx-auto max-w-md px-4 pb-40 pt-4">
-        {error && <ErrorState message={error} />}
-        {!data && !error && <DashboardSkeleton />}
-        {data && (
-          <div className="space-y-6">
-            <ExpertProfileCard expert={data.expert} onLogout={logout} />
-            <StatusLegend />
-            <DashboardSections data={data} />
-          </div>
-        )}
+        <div className="space-y-6">
+          <ExpertProfileCard expert={data.expert} onLogout={logout} />
+          <StatusLegend />
+          <DashboardSections data={data} />
+        </div>
       </div>
       <ImpactOfScoreCard />
     </div>
   );
 }
 
-function DashboardSections({ data }: { data: DashboardData }) {
-  const groups = groupMetricsBySection(data.metrics);
+const COMPACT_SECTIONS = new Set<SectionKey>([
+  "engagement_overview",
+  "earnings_overview",
+]);
+
+const SCORE_LABELS: Partial<Record<SectionKey, string>> = {
+  earnings_overview: "Earnings",
+  engagement_overview: "Value",
+};
+
+function DashboardSections({ data }: { data: DashboardResponse }) {
   return (
     <>
-      <MetricSection title={SECTION_TITLES.critical_performance}>
-        {groups.critical_performance.map((m) => (
-          <PerformanceMetricCard key={m.metric_key} metric={m} />
-        ))}
-      </MetricSection>
-      <MetricSection title={SECTION_TITLES.profile_performance}>
-        {groups.profile_performance.map((m) => (
-          <PerformanceMetricCard key={m.metric_key} metric={m} />
-        ))}
-      </MetricSection>
-      <MetricSection title={SECTION_TITLES.availability_performance}>
-        {groups.availability_performance.map((m) => (
-          <PerformanceMetricCard key={m.metric_key} metric={m} />
-        ))}
-      </MetricSection>
-      <MetricSection title={SECTION_TITLES.other_performance}>
-        <CompactMetricsTable metrics={groups.other_performance} />
-      </MetricSection>
-      <MetricSection title={SECTION_TITLES.online_time}>
-        <OnlineTimeSection metrics={groups.online_time} />
-      </MetricSection>
+      {SECTION_ORDER.map((key) => {
+        const metrics = data.metrics_by_section?.[key] ?? [];
+        if (metrics.length === 0) return null;
+        return (
+          <MetricSection key={key} title={SECTION_TITLES[key]}>
+            {COMPACT_SECTIONS.has(key) ? (
+              <CompactMetricsTable metrics={metrics} scoreLabel={SCORE_LABELS[key]} />
+            ) : (
+              metrics.map((m) => (
+                <PerformanceMetricCard key={m.metric_key} metric={m} />
+              ))
+            )}
+          </MetricSection>
+        );
+      })}
     </>
-  );
-}
-
-function DashboardSkeleton() {
-  return (
-    <div className="space-y-3">
-      {[...Array(4)].map((_, i) => (
-        <div key={i} className="h-24 animate-pulse rounded-2xl bg-muted" />
-      ))}
-    </div>
   );
 }
