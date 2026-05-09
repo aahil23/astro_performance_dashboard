@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from "react";
 import type { ApiStatus, BenchmarkBands } from "@/services/dashboardApi";
 import { getStatusColor } from "@/services/dashboardApi";
 
@@ -15,6 +14,13 @@ const TIER_COLORS = [
   "var(--status-elite)",
 ];
 
+const VISUAL_BANDS = [
+  { key: "weak", left: 0, width: 40 },
+  { key: "stable", left: 40, width: 30 },
+  { key: "strong", left: 70, width: 20 },
+  { key: "elite", left: 90, width: 10 },
+];
+
 const getSafeStatusColor = (status: ApiStatus | null) => {
   if (!status) return "var(--muted-foreground)";
 
@@ -28,104 +34,70 @@ const getSafeStatusColor = (status: ApiStatus | null) => {
   return getStatusColor(status);
 };
 
-export function SegmentedBenchmarkBar({ bands, score, status }: Props) {
-  const thresholds = [bands.p0, bands.p75, bands.p90, bands.p95, bands.p100];
-  const min = thresholds[0];
-  const max = thresholds[thresholds.length - 1];
-  const range = Math.max(1e-9, max - min);
+const clamp = (value: number, min: number, max: number) => {
+  return Math.min(max, Math.max(min, value));
+};
 
-  const pct = (v: number) => ((v - min) / range) * 100;
+const getScorePosition = (score: number, bands: BenchmarkBands) => {
+  const p0 = bands.p0;
+  const p75 = bands.p75;
+  const p90 = bands.p90;
+  const p95 = bands.p95;
+  const p100 = bands.p100;
 
-  const segments = thresholds.slice(0, -1).map((start, i) => {
-    const end = thresholds[i + 1];
-
-    return {
-      left: pct(start),
-      width: Math.max(0, pct(end) - pct(start)),
-      color: TIER_COLORS[i] ?? TIER_COLORS[TIER_COLORS.length - 1],
-    };
-  });
-
-  const fillPct = Math.min(100, Math.max(0, pct(score)));
-  const fillColor = getSafeStatusColor(status);
-
-  const labelsRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
-
-  useEffect(() => {
-    const el = labelsRef.current;
-    if (!el) return;
-
-    const ro = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width);
-      }
-    });
-
-    ro.observe(el);
-    setContainerWidth(el.getBoundingClientRect().width);
-
-    return () => ro.disconnect();
-  }, []);
-
-  const labelStrs = thresholds.map((t) => String(t));
-  const approxCharPx = containerWidth < 280 ? 5.5 : 6;
-  const gapPx = 6;
-  const widths = labelStrs.map((s) => s.length * approxCharPx + gapPx);
-  const positionsPx = thresholds.map((t) => (pct(t) / 100) * containerWidth);
-
-  const visible = new Array(thresholds.length).fill(true);
-
-  if (containerWidth > 0) {
-    let lastIdx = 0;
-
-    for (let i = 1; i < thresholds.length - 1; i++) {
-      const minSpace = (widths[lastIdx] + widths[i]) / 2;
-      const nextMinSpace = (widths[i] + widths[thresholds.length - 1]) / 2;
-
-      const okLeft = positionsPx[i] - positionsPx[lastIdx] >= minSpace;
-      const okRight =
-        positionsPx[thresholds.length - 1] - positionsPx[i] >= nextMinSpace;
-
-      if (okLeft && okRight) {
-        visible[i] = true;
-        lastIdx = i;
-      } else {
-        visible[i] = false;
-      }
-    }
-
-    const lastI = thresholds.length - 1;
-    const minLast = (widths[lastIdx] + widths[lastI]) / 2;
-
-    if (positionsPx[lastI] - positionsPx[lastIdx] < minLast && lastIdx !== 0) {
-      visible[lastIdx] = false;
-    }
+  if (score <= p75) {
+    const range = Math.max(1e-9, p75 - p0);
+    const progress = clamp((score - p0) / range, 0, 1);
+    return progress * 40;
   }
+
+  if (score <= p90) {
+    const range = Math.max(1e-9, p90 - p75);
+    const progress = clamp((score - p75) / range, 0, 1);
+    return 40 + progress * 30;
+  }
+
+  if (score <= p95) {
+    const range = Math.max(1e-9, p95 - p90);
+    const progress = clamp((score - p90) / range, 0, 1);
+    return 70 + progress * 20;
+  }
+
+  const range = Math.max(1e-9, p100 - p95);
+  const progress = clamp((score - p95) / range, 0, 1);
+  return 90 + progress * 10;
+};
+
+export function SegmentedBenchmarkBar({ bands, score, status }: Props) {
+  const thresholds = [
+    { value: bands.p0, position: 0 },
+    { value: bands.p75, position: 40 },
+    { value: bands.p90, position: 70 },
+    { value: bands.p95, position: 90 },
+    { value: bands.p100, position: 100 },
+  ];
+
+  const fillPct = getScorePosition(score, bands);
+  const fillColor = getSafeStatusColor(status);
 
   return (
     <div className="space-y-2">
       <div className="relative h-2.5 w-full overflow-hidden rounded-full">
-        {segments.map((s, i) => (
+        {VISUAL_BANDS.map((segment, i) => (
           <div
-            key={i}
+            key={segment.key}
             className="absolute inset-y-0"
             style={{
-              left: `${s.left}%`,
-              width: `${s.width}%`,
-              backgroundColor: s.color,
+              left: `${segment.left}%`,
+              width: `${segment.width}%`,
+              backgroundColor: TIER_COLORS[i],
             }}
           />
         ))}
       </div>
 
-      <div
-        ref={labelsRef}
-        className="relative h-6 w-full text-[10px] text-muted-foreground"
-      >
+      <div className="relative h-5 w-full text-[10px] text-muted-foreground">
         {thresholds.map((t, i) => {
-          if (!visible[i]) return null;
-
           const isFirst = i === 0;
           const isLast = i === thresholds.length - 1;
 
@@ -140,12 +112,11 @@ export function SegmentedBenchmarkBar({ bands, score, status }: Props) {
               key={i}
               className="absolute tabular-nums whitespace-nowrap"
               style={{
-                left: `${pct(t)}%`,
-                transform: `${transform} rotate(-30deg)`,
-                transformOrigin: "top left",
+                left: `${t.position}%`,
+                transform,
               }}
             >
-              {t}
+              {t.value}
             </span>
           );
         })}
