@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 
 export function ImpactOfScoreCard() {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const contentId = "impact-of-score-content";
 
   return (
