@@ -14,7 +14,24 @@ export function CompactMetricsTable({ metrics, scoreLabel = "Score" }: Props) {
         <span className="text-right">{scoreLabel}</span>
         <span className="text-right">Rank</span>
       </div>
-      {metrics.map((m, i) => (
+      {[...metrics]
+        .sort((a, b) => {
+    const getPriority = (key: string) => {
+      if (key.startsWith("chat")) return 1;
+      if (key.startsWith("avg_chat")) return 1;
+
+      if (key.startsWith("audio")) return 2;
+      if (key.startsWith("avg_audio")) return 2;
+
+      if (key.startsWith("video")) return 3;
+      if (key.startsWith("avg_video")) return 3;
+
+      return 999;
+    };
+
+    return getPriority(a.metric_key) - getPriority(b.metric_key);
+  })
+        .map((m, i) => (
         <div
           key={m.metric_key}
           className={`grid grid-cols-[1fr_auto_auto] items-center gap-4 px-4 py-3 ${
