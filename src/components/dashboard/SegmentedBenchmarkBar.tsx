@@ -18,7 +18,7 @@ const TIER_COLORS = [
 const getSafeStatusColor = (status: ApiStatus | null) => {
   if (!status) return "var(--muted-foreground)";
 
-  const normalized = String(status).toLowerCase();
+  const normalized = String(status).trim().toLowerCase();
 
   if (normalized === "weak") return "var(--status-critical)";
   if (normalized === "stable") return "var(--status-stable)";
@@ -121,7 +121,7 @@ export function SegmentedBenchmarkBar({ bands, score, status }: Props) {
 
       <div
         ref={labelsRef}
-        className="relative h-4 w-full text-[10px] text-muted-foreground"
+        className="relative h-6 w-full text-[10px] text-muted-foreground"
       >
         {thresholds.map((t, i) => {
           if (!visible[i]) return null;
@@ -141,7 +141,8 @@ export function SegmentedBenchmarkBar({ bands, score, status }: Props) {
               className="absolute tabular-nums whitespace-nowrap"
               style={{
                 left: `${pct(t)}%`,
-                transform,
+                transform: `${transform} rotate(-30deg)`,
+                transformOrigin: "top left",
               }}
             >
               {t}
