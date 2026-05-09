@@ -72,10 +72,30 @@ function DashboardSections({ data }: { data: DashboardResponse }) {
             {COMPACT_SECTIONS.has(key) ? (
               <CompactMetricsTable metrics={metrics} scoreLabel={SCORE_LABELS[key]} />
             ) : (
-              metrics.map((m) => (
-                <PerformanceMetricCard key={m.metric_key} metric={m} />
-              ))
-            )}
+              [...metrics]
+  .sort((a, b) => {
+    const priorityMap: Record<string, number> = {
+      avg_chat_rating: 1,
+      avg_audio_rating: 2,
+      avg_video_rating: 3,
+
+      chat_available_hours: 4,
+      audio_available_hours: 5,
+      video_available_hours: 6,
+    };
+
+    return (
+      (priorityMap[a.metric_key] ?? 999) -
+      (priorityMap[b.metric_key] ?? 999)
+    );
+  })
+  .map((m) => (
+    <PerformanceMetricCard
+      key={m.metric_key}
+      metric={m}
+    />
+  ))}
+            )
           </MetricSection>
         );
       })}
