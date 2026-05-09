@@ -7,50 +7,100 @@ import {
 } from "@/services/dashboardApi";
 import { SegmentedBenchmarkBar } from "./SegmentedBenchmarkBar";
 
-export function PerformanceMetricCard({ metric }: { metric: ApiMetric }) {
-  const title = getMetricTitle(metric.metric_key);
-  const description = getMetricDescription(metric.metric_key);
+const getPriority = (key: string) => {
+  const priorityMap: Record<string, number> = {
+    
+    avg_chat_rating: 1,
+    avg_audio_rating: 2,
+    avg_video_rating: 3,
+
+    chat_available_hours: 4,
+    audio_available_hours: 5,
+    video_available_hours: 6,
+  };
+
+  return priorityMap[key] ?? 999;
+};
+
+interface Props {
+  metrics: ApiMetric[];
+}
+
+export function PerformanceMetricCards({ metrics }: Props) {
+  const sortedMetrics = [...metrics].sort(
+    (a, b) => getPriority(a.metric_key) - getPriority(b.metric_key)
+  );
+
   return (
-    <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
-      <div className="mb-1 flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-base font-semibold text-foreground">{title}</h3>
-          {metric.period_label && (
-            <p className="text-xs text-muted-foreground">{metric.period_label}</p>
-          )}
-        </div>
-        {metric.status && (
-          <span
-            className="rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
-            style={{ backgroundColor: getStatusColor(metric.status) }}
+    <div className="space-y-4">
+      {sortedMetrics.map((metric) => {
+        const title = getMetricTitle(metric.metric_key);
+        const description = getMetricDescription(metric.metric_key);
+
+        return (
+          <div
+            key={metric.metric_key}
+            className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm"
           >
-            {metric.status}
-          </span>
-        )}
-      </div>
-      {metric.benchmark_bands && (
-        <div className="mt-4">
-          <SegmentedBenchmarkBar
-            bands={metric.benchmark_bands}
-            score={metric.score}
-            status={metric.status}
-          />
-        </div>
-      )}
-      <div className="mt-3 flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">Your Score</span>
-        <span className="font-semibold text-foreground">
-          {formatMetricValue(metric.score, metric.unit)}
-        </span>
-      </div>
-      {description && (
-        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{description}</p>
-      )}
-      {metric.rank !== null && (
-        <p className="mt-2 text-xs font-medium text-foreground">
-          Rank: {metric.rank.toLocaleString("en-IN")}
-        </p>
-      )}
+            <div className="mb-1 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-base font-semibold text-foreground">
+                  {title}
+                </h3>
+
+                {metric.period_label && (
+                  <p className="text-xs text-muted-foreground">
+                    {metric.period_label}
+                  </p>
+                )}
+              </div>
+
+              {metric.status && (
+                <span
+                  className="rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
+                  style={{
+                    backgroundColor: getStatusColor(metric.status),
+                  }}
+                >
+                  {metric.status}
+                </span>
+              )}
+            </div>
+
+            {metric.benchmark_bands && (
+              <div className="mt-4">
+                <SegmentedBenchmarkBar
+                  bands={metric.benchmark_bands}
+                  score={metric.score}
+                  status={metric.status}
+                />
+              </div>
+            )}
+
+            <div className="mt-3 flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">
+                Your Score
+              </span>
+
+              <span className="font-semibold text-foreground">
+                {formatMetricValue(metric.score, metric.unit)}
+              </span>
+            </div>
+
+            {description && (
+              <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                {description}
+              </p>
+            )}
+
+            {metric.rank !== null && (
+              <p className="mt-2 text-xs font-medium text-foreground">
+                Rank: {metric.rank.toLocaleString("en-IN")}
+              </p>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
