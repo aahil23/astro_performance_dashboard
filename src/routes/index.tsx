@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Phone } from "lucide-react";
 import logo from "@/assets/logo.svg";
 import { session } from "@/lib/session";
-import { validateRegisteredMobileNumber } from "@/lib/dashboard-data";
+import { dashboardStore } from "@/lib/dashboard-store";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -24,12 +24,7 @@ function Index() {
       return;
     }
     setBusy(true);
-    const ok = await validateRegisteredMobileNumber(phone);
-    if (!ok) {
-      setBusy(false);
-      setError("This number is not registered.");
-      return;
-    }
+    dashboardStore.clear();
     session.login(phone);
     navigate({ to: "/loading" });
   };
