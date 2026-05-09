@@ -34,7 +34,11 @@ const getScorePosition = (
   bands: BenchmarkBands,
   hasEliteBand: boolean
 ) => {
-  const { p0, p75, p90, p95, p100 } = bands;
+  const p0 = Number(bands.p0);
+  const p75 = Number(bands.p75);
+  const p90 = Number(bands.p90);
+  const p95 = Number(bands.p95);
+  const p100 = Number(bands.p100);
 
   if (!hasEliteBand) {
     if (score <= p75) {
@@ -71,7 +75,10 @@ const getScorePosition = (
 };
 
 export function SegmentedBenchmarkBar({ bands, score, status }: Props) {
-  const hasEliteBand = Number(bands.p95) < Number(bands.p100);
+  const p95 = Number(bands.p95);
+  const p100 = Number(bands.p100);
+
+  const hasEliteBand = Math.abs(p100 - p95) > 0.01;
 
   const visualBands = hasEliteBand
     ? [
@@ -123,20 +130,20 @@ export function SegmentedBenchmarkBar({ bands, score, status }: Props) {
 
   const thresholds = hasEliteBand
     ? [
-        { value: bands.p0, position: 0 },
-        { value: bands.p75, position: 40 },
-        { value: bands.p90, position: 70 },
-        { value: bands.p95, position: 90 },
-        { value: bands.p100, position: 100 },
+        { key: "p0", value: Number(bands.p0), position: 0 },
+        { key: "p75", value: Number(bands.p75), position: 40 },
+        { key: "p90", value: Number(bands.p90), position: 70 },
+        { key: "p95", value: Number(bands.p95), position: 90 },
+        { key: "p100", value: Number(bands.p100), position: 100 },
       ]
     : [
-        { value: bands.p0, position: 0 },
-        { value: bands.p75, position: 40 },
-        { value: bands.p90, position: 70 },
-        { value: bands.p95, position: 100 },
+        { key: "p0", value: Number(bands.p0), position: 0 },
+        { key: "p75", value: Number(bands.p75), position: 40 },
+        { key: "p90", value: Number(bands.p90), position: 70 },
+        { key: "p95", value: Number(bands.p95), position: 100 },
       ];
 
-  const fillPct = getScorePosition(score, bands, hasEliteBand);
+  const fillPct = getScorePosition(Number(score), bands, hasEliteBand);
   const fillColor = getSafeStatusColor(status);
 
   return (
@@ -168,14 +175,14 @@ export function SegmentedBenchmarkBar({ bands, score, status }: Props) {
 
           return (
             <span
-              key={`${t.value}-${i}`}
+              key={t.key}
               className="absolute tabular-nums whitespace-nowrap"
               style={{
                 left: `${t.position}%`,
                 transform,
               }}
             >
-              {formatLabel(Number(t.value))}
+              {formatLabel(t.value)}
             </span>
           );
         })}
