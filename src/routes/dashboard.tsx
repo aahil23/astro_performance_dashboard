@@ -52,8 +52,8 @@ function DashboardPage() {
 }
 
 const COMPACT_SECTIONS = new Set<SectionKey>([
-  "engagement_overview",
   "earnings_overview",
+  "engagement_overview",
 ]);
 
 const SCORE_LABELS: Partial<Record<SectionKey, string>> = {
