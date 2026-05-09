@@ -108,16 +108,18 @@ export function SegmentedBenchmarkBar({ bands, score, status }: Props) {
               : "translateX(-50%)";
 
           return (
-            <span
-              key={i}
-              className="absolute tabular-nums whitespace-nowrap"
-              style={{
-                left: `${t.position}%`,
-                transform,
-              }}
-            >
-              {t.value}
-            </span>
+<span
+  key={i}
+  className="absolute tabular-nums whitespace-nowrap"
+  style={{
+    left: `${t.position}%`,
+    transform,
+  }}
+>
+  {i === thresholds.length - 1
+    ? Math.round(Number(t.value))
+    : t.value}
+</span>
           );
         })}
       </div>
