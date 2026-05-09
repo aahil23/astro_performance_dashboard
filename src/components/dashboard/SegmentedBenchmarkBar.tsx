@@ -7,20 +7,6 @@ interface Props {
   status: ApiStatus | null;
 }
 
-const TIER_COLORS = [
-  "var(--status-critical)",
-  "var(--status-stable)",
-  "var(--status-strong)",
-  "var(--status-elite)",
-];
-
-const VISUAL_BANDS = [
-  { key: "weak", left: 0, width: 40 },
-  { key: "stable", left: 40, width: 30 },
-  { key: "strong", left: 70, width: 20 },
-  { key: "elite", left: 90, width: 10 },
-];
-
 const getSafeStatusColor = (status: ApiStatus | null) => {
   if (!status) return "var(--muted-foreground)";
 
@@ -38,59 +24,132 @@ const clamp = (value: number, min: number, max: number) => {
   return Math.min(max, Math.max(min, value));
 };
 
-const getScorePosition = (score: number, bands: BenchmarkBands) => {
-  const p0 = bands.p0;
-  const p75 = bands.p75;
-  const p90 = bands.p90;
-  const p95 = bands.p95;
-  const p100 = bands.p100;
+const formatLabel = (value: number) => {
+  if (Number.isInteger(value)) return String(value);
+  return Number(value).toFixed(1);
+};
+
+const getScorePosition = (
+  score: number,
+  bands: BenchmarkBands,
+  hasEliteBand: boolean
+) => {
+  const { p0, p75, p90, p95, p100 } = bands;
+
+  if (!hasEliteBand) {
+    if (score <= p75) {
+      const progress = clamp((score - p0) / Math.max(1e-9, p75 - p0), 0, 1);
+      return progress * 40;
+    }
+
+    if (score <= p90) {
+      const progress = clamp((score - p75) / Math.max(1e-9, p90 - p75), 0, 1);
+      return 40 + progress * 30;
+    }
+
+    const progress = clamp((score - p90) / Math.max(1e-9, p95 - p90), 0, 1);
+    return 70 + progress * 30;
+  }
 
   if (score <= p75) {
-    const range = Math.max(1e-9, p75 - p0);
-    const progress = clamp((score - p0) / range, 0, 1);
+    const progress = clamp((score - p0) / Math.max(1e-9, p75 - p0), 0, 1);
     return progress * 40;
   }
 
   if (score <= p90) {
-    const range = Math.max(1e-9, p90 - p75);
-    const progress = clamp((score - p75) / range, 0, 1);
+    const progress = clamp((score - p75) / Math.max(1e-9, p90 - p75), 0, 1);
     return 40 + progress * 30;
   }
 
   if (score <= p95) {
-    const range = Math.max(1e-9, p95 - p90);
-    const progress = clamp((score - p90) / range, 0, 1);
+    const progress = clamp((score - p90) / Math.max(1e-9, p95 - p90), 0, 1);
     return 70 + progress * 20;
   }
 
-  const range = Math.max(1e-9, p100 - p95);
-  const progress = clamp((score - p95) / range, 0, 1);
+  const progress = clamp((score - p95) / Math.max(1e-9, p100 - p95), 0, 1);
   return 90 + progress * 10;
 };
 
 export function SegmentedBenchmarkBar({ bands, score, status }: Props) {
-  const thresholds = [
-    { value: bands.p0, position: 0 },
-    { value: bands.p75, position: 40 },
-    { value: bands.p90, position: 70 },
-    { value: bands.p95, position: 90 },
-    { value: bands.p100, position: 100 },
-  ];
+  const hasEliteBand = Number(bands.p95) < Number(bands.p100);
 
-  const fillPct = getScorePosition(score, bands);
+  const visualBands = hasEliteBand
+    ? [
+        {
+          key: "weak",
+          left: 0,
+          width: 40,
+          color: "var(--status-critical)",
+        },
+        {
+          key: "stable",
+          left: 40,
+          width: 30,
+          color: "var(--status-stable)",
+        },
+        {
+          key: "strong",
+          left: 70,
+          width: 20,
+          color: "var(--status-strong)",
+        },
+        {
+          key: "elite",
+          left: 90,
+          width: 10,
+          color: "var(--status-elite)",
+        },
+      ]
+    : [
+        {
+          key: "weak",
+          left: 0,
+          width: 40,
+          color: "var(--status-critical)",
+        },
+        {
+          key: "stable",
+          left: 40,
+          width: 30,
+          color: "var(--status-stable)",
+        },
+        {
+          key: "strong",
+          left: 70,
+          width: 30,
+          color: "var(--status-strong)",
+        },
+      ];
+
+  const thresholds = hasEliteBand
+    ? [
+        { value: bands.p0, position: 0 },
+        { value: bands.p75, position: 40 },
+        { value: bands.p90, position: 70 },
+        { value: bands.p95, position: 90 },
+        { value: bands.p100, position: 100 },
+      ]
+    : [
+        { value: bands.p0, position: 0 },
+        { value: bands.p75, position: 40 },
+        { value: bands.p90, position: 70 },
+        { value: bands.p95, position: 100 },
+      ];
+
+  const fillPct = getScorePosition(score, bands, hasEliteBand);
   const fillColor = getSafeStatusColor(status);
 
   return (
     <div className="space-y-2">
       <div className="relative h-2.5 w-full overflow-hidden rounded-full">
-        {VISUAL_BANDS.map((segment, i) => (
+        {visualBands.map((segment) => (
           <div
             key={segment.key}
             className="absolute inset-y-0"
             style={{
               left: `${segment.left}%`,
               width: `${segment.width}%`,
-              backgroundColor: TIER_COLORS[i],
+              backgroundColor: segment.color,
             }}
           />
         ))}
@@ -108,18 +167,16 @@ export function SegmentedBenchmarkBar({ bands, score, status }: Props) {
               : "translateX(-50%)";
 
           return (
-<span
-  key={i}
-  className="absolute tabular-nums whitespace-nowrap"
-  style={{
-    left: `${t.position}%`,
-    transform,
-  }}
->
-  {i === thresholds.length - 1
-    ? Math.round(Number(t.value))
-    : t.value}
-</span>
+            <span
+              key={`${t.value}-${i}`}
+              className="absolute tabular-nums whitespace-nowrap"
+              style={{
+                left: `${t.position}%`,
+                transform,
+              }}
+            >
+              {formatLabel(Number(t.value))}
+            </span>
           );
         })}
       </div>
