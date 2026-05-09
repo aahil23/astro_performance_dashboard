@@ -1,12 +1,17 @@
-import type { Metric } from "@/lib/dashboard-data";
-import { formatMetricValue } from "@/lib/dashboard-data";
+import type { ApiMetric } from "@/services/dashboardApi";
+import { formatMetricValue, getMetricTitle } from "@/services/dashboardApi";
 
-export function CompactMetricsTable({ metrics }: { metrics: Metric[] }) {
+interface Props {
+  metrics: ApiMetric[];
+  scoreLabel?: string;
+}
+
+export function CompactMetricsTable({ metrics, scoreLabel = "Score" }: Props) {
   return (
     <div className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
       <div className="grid grid-cols-[1fr_auto_auto] gap-4 border-b border-border/60 bg-muted/40 px-4 py-2 text-xs font-medium text-muted-foreground">
         <span>Metric</span>
-        <span className="text-right">Earnings</span>
+        <span className="text-right">{scoreLabel}</span>
         <span className="text-right">Rank</span>
       </div>
       {metrics.map((m, i) => (
@@ -17,8 +22,10 @@ export function CompactMetricsTable({ metrics }: { metrics: Metric[] }) {
           }`}
         >
           <div>
-            <p className="text-sm font-medium text-foreground">{m.title}</p>
-            <p className="text-[11px] text-muted-foreground">{m.period_label}</p>
+            <p className="text-sm font-medium text-foreground">{getMetricTitle(m.metric_key)}</p>
+            {m.period_label && (
+              <p className="text-[11px] text-muted-foreground">{m.period_label}</p>
+            )}
           </div>
           <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-foreground">
             {formatMetricValue(m.score, m.unit)}
