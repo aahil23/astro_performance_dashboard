@@ -43,8 +43,8 @@ export interface DashboardResponse {
 
 export const SECTION_ORDER: SectionKey[] = [
   "critical_performance",
-  "profile_performance",
   "availability_performance",
+  "profile_performance",
   "earnings_overview",
   "engagement_overview",
 ];
