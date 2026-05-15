@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronUp } from "lucide-react";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 
@@ -21,9 +21,9 @@ export function ImpactOfScoreCard() {
             aria-hidden="true"
             className="flex h-7 w-7 items-center justify-center rounded-full text-foreground/70 transition-colors hover:bg-white/40"
           >
-            <ChevronDown
+            <ChevronUp
               className={`h-4 w-4 transition-transform duration-300 ${
-                expanded ? "rotate-180" : "rotate-0"
+                expanded ? "rotate-0" : "rotate-0"
               }`}
             />
           </span>
