@@ -22,9 +22,10 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
 
-const COMPACT_SECTIONS = new Set<SectionKey>([
-  "earnings_overview",
-]);
+const ONLINE_TIME_COLOR = "#c4c7cf";
+const BUSY_TIME_COLOR = "#f4511e";
+
+const COMPACT_SECTIONS = new Set<SectionKey>(["earnings_overview"]);
 
 const SCORE_LABELS: Partial<Record<SectionKey, string>> = {
   earnings_overview: "Earnings",
@@ -155,9 +156,24 @@ const UTILISATION_PAIRS: Array<{
   onlineKey: string;
   showBenchmark: boolean;
 }> = [
-  { title: "Chat Utilisation", busyKey: "chat_busy_time_l7", onlineKey: "chat_online_time_l7", showBenchmark: true },
-  { title: "Audio Utilisation", busyKey: "audio_busy_time_l7", onlineKey: "audio_online_time_l7", showBenchmark: true },
-  { title: "Video Utilisation", busyKey: "video_busy_time_l7", onlineKey: "video_online_time_l7", showBenchmark: false },
+  {
+    title: "Chat Utilisation",
+    busyKey: "chat_busy_time_l7",
+    onlineKey: "chat_online_time_l7",
+    showBenchmark: true,
+  },
+  {
+    title: "Audio Utilisation",
+    busyKey: "audio_busy_time_l7",
+    onlineKey: "audio_online_time_l7",
+    showBenchmark: true,
+  },
+  {
+    title: "Video Utilisation",
+    busyKey: "video_busy_time_l7",
+    onlineKey: "video_online_time_l7",
+    showBenchmark: false,
+  },
 ];
 
 function UtilisationSection({ metrics }: { metrics: ApiMetric[] }) {
@@ -167,11 +183,18 @@ function UtilisationSection({ metrics }: { metrics: ApiMetric[] }) {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-4 px-1 pb-1">
         <div className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/40" />
+          <span
+            className="h-2.5 w-2.5 rounded-full"
+            style={{ backgroundColor: ONLINE_TIME_COLOR }}
+          />
           <span className="text-xs text-muted-foreground">Online Time</span>
         </div>
+
         <div className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: "var(--primary)" }} />
+          <span
+            className="h-2.5 w-2.5 rounded-full"
+            style={{ backgroundColor: BUSY_TIME_COLOR }}
+          />
           <span className="text-xs text-muted-foreground">Busy Time</span>
         </div>
       </div>
@@ -179,7 +202,9 @@ function UtilisationSection({ metrics }: { metrics: ApiMetric[] }) {
       {UTILISATION_PAIRS.map((pair) => {
         const busy = byKey.get(pair.busyKey);
         const online = byKey.get(pair.onlineKey);
+
         if (!busy || !online) return null;
+
         return (
           <UtilisationMetricCard
             key={pair.title}
