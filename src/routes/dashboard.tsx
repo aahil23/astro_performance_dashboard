@@ -85,14 +85,28 @@ function DashboardPage() {
 
   if (!data) return null;
 
+  const allMetrics = Object.values(data.metrics_by_section).flat();
+
+  const lastUpdated = allMetrics
+    .map((metric) => metric.updated_at)
+    .filter(Boolean)
+    .sort()
+    .reverse()[0];
+
   return (
     <div className="min-h-screen">
       <AppHeader title="Astro Performance Dashboard" backTo="/" />
 
       <div className="mx-auto max-w-md px-4 pb-40 pt-4">
         <div className="space-y-6">
-          <ExpertProfileCard expert={data.expert} onLogout={logout} />
+          <ExpertProfileCard
+            expert={data.expert}
+            onLogout={logout}
+            lastUpdated={lastUpdated}
+          />
+
           <StatusLegend />
+
           <DashboardSections data={data} />
         </div>
       </div>
