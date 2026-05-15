@@ -10,6 +10,7 @@ interface Props {
   title: string;
   busyMetric: ApiMetric;
   onlineMetric: ApiMetric;
+  utilisationMetric: ApiMetric;
   showBenchmark: boolean;
 }
 
@@ -17,15 +18,16 @@ export function UtilisationMetricCard({
   title,
   busyMetric,
   onlineMetric,
+  utilisationMetric,
   showBenchmark,
 }: Props) {
-  const description = getMetricDescription(busyMetric.metric_key);
+  const description = getMetricDescription(utilisationMetric.metric_key);
 
   const onlineScore = Number(onlineMetric.score) || 0;
   const busyScore = Number(busyMetric.score) || 0;
+  const utilisationScore = Number(utilisationMetric.score);
 
   const hasOnline = onlineScore > 0;
-  const utilisationPct = hasOnline ? (busyScore / onlineScore) * 100 : 0;
 
   const busyFillPct = hasOnline
     ? Math.min(100, Math.max(0, (busyScore / onlineScore) * 100))
@@ -33,7 +35,6 @@ export function UtilisationMetricCard({
 
   const onlineFillPct = hasOnline ? 100 - busyFillPct : 0;
 
-  // Match legend colours
   const onlineColor = "#c4c7cf";
   const busyColor = "#f4511e";
 
@@ -47,37 +48,41 @@ export function UtilisationMetricCard({
             {title}
           </h3>
 
-          {busyMetric.period_label && (
+          {utilisationMetric.period_label && (
             <p className="text-xs text-muted-foreground">
-              {busyMetric.period_label}
+              {utilisationMetric.period_label}
             </p>
           )}
         </div>
 
-        {showBenchmark && busyMetric.status && (
+        {showBenchmark && utilisationMetric.status && (
           <span
             className="rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
-            style={{ backgroundColor: getStatusColor(busyMetric.status) }}
+            style={{
+              backgroundColor: getStatusColor(utilisationMetric.status),
+            }}
           >
-            {busyMetric.status}
+            {utilisationMetric.status}
           </span>
         )}
       </div>
 
-      {showBenchmark && busyMetric.benchmark_bands && (
+      {showBenchmark && utilisationMetric.benchmark_bands && (
         <div className="mt-4">
           <SegmentedBenchmarkBar
-            bands={busyMetric.benchmark_bands}
-            score={busyMetric.score}
-            status={busyMetric.status}
+            bands={utilisationMetric.benchmark_bands}
+            score={utilisationMetric.score}
+            status={utilisationMetric.status}
           />
         </div>
       )}
 
-      {/* Combined Online + Busy Bar */}
       <div className="mt-4">
+        <p className="mb-1 text-[10px] font-medium text-muted-foreground">
+          Busy Time vs Online Time
+        </p>
+
         <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
-          {/* Busy portion */}
           <div
             className="h-full transition-all"
             style={{
@@ -87,7 +92,6 @@ export function UtilisationMetricCard({
             aria-label="Busy time"
           />
 
-          {/* Remaining online portion */}
           <div
             className="h-full transition-all"
             style={{
@@ -115,35 +119,25 @@ export function UtilisationMetricCard({
         </div>
       </div>
 
-      {/* Score */}
       <div className="mt-3 flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">Your Score</span>
+        <span className="text-muted-foreground">Your Utilisation</span>
 
         <span className="font-semibold text-foreground">
-          {formatMetricValue(busyMetric.score, busyMetric.unit)}
+          {Number.isFinite(utilisationScore)
+            ? `${utilisationScore.toFixed(1)}%`
+            : "N/A"}
         </span>
       </div>
 
-      {/* Utilisation */}
-      <div className="mt-2 flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">Utilisation</span>
-
-        <span className="font-semibold text-foreground">
-          {hasOnline ? `${utilisationPct.toFixed(1)}%` : "N/A"}
-        </span>
-      </div>
-
-      {/* Description */}
       {description && (
         <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
           {description}
         </p>
       )}
 
-      {/* Rank */}
-      {showBenchmark && busyMetric.rank !== null && (
+      {showBenchmark && utilisationMetric.rank !== null && (
         <p className="mt-2 text-xs font-medium text-foreground">
-          Rank: {busyMetric.rank.toLocaleString("en-IN")}
+          Rank: {utilisationMetric.rank.toLocaleString("en-IN")}
         </p>
       )}
     </div>
