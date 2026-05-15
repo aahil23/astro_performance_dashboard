@@ -1,5 +1,5 @@
 export const DASHBOARD_API_URL =
-  "https://script.google.com/a/macros/getlokalapp.com/s/AKfycbyOKfYk15W0hQtZst3n0t1vS4_OV1qAn1Wn1DKkGBwjVJIREW9K5gmQw880wWHdnGrY/exec";
+  "https://script.google.com/macros/s/AKfycbwg32JEdR9xHrVs88p-F-E6FjoNx6h8IqIL3SbYJDhuNASFDj5vO71ZDocCYYlXD9I/exec";
 
 export type ApiStatus = "Weak" | "Average" | "Strong" | "Elite";
 
@@ -19,6 +19,7 @@ export interface ApiMetric {
   rank: number | null;
   status: ApiStatus | null;
   benchmark_bands: BenchmarkBands | null;
+  updated_at?: string;
 }
 
 export interface ApiExpert {
