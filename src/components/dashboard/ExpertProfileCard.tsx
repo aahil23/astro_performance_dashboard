@@ -15,7 +15,7 @@ export function ExpertProfileCard({
 }: Props) {
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
-      <div className="flex items-start gap-3">
+      <div className="flex items-center gap-3">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-soft">
           <img src={logo} alt="" className="h-10 w-10" />
         </div>
@@ -36,16 +36,16 @@ export function ExpertProfileCard({
           )}
         </div>
 
-        <div className="flex shrink-0 flex-col items-end gap-2">
+        <div className="flex shrink-0 flex-col items-end gap-1">
           <span className="rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-primary">
-            ID: {expert.expert_id}
+            Expert ID: {expert.expert_id}
           </span>
 
           <button
             onClick={onLogout}
-            className="flex flex-col items-center justify-center rounded-xl px-3 py-1.5 text-xs font-medium text-primary hover:bg-brand-soft"
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-primary hover:bg-brand-soft"
           >
-            <LogOut className="mb-0.5 h-4 w-4" />
+            <LogOut className="h-4 w-4" />
             Logout
           </button>
         </div>
