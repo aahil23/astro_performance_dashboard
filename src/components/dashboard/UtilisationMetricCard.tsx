@@ -1,5 +1,9 @@
 import type { ApiMetric } from "@/services/dashboardApi";
-import { formatMetricValue, getStatusColor } from "@/services/dashboardApi";
+import {
+  formatMetricValue,
+  getMetricDescription,
+  getStatusColor,
+} from "@/services/dashboardApi";
 import { SegmentedBenchmarkBar } from "./SegmentedBenchmarkBar";
 
 interface Props {
@@ -15,6 +19,8 @@ export function UtilisationMetricCard({
   onlineMetric,
   showBenchmark,
 }: Props) {
+  const description = getMetricDescription(busyMetric.metric_key);
+
   const onlineScore = Number(onlineMetric.score) || 0;
   const busyScore = Number(busyMetric.score) || 0;
 
@@ -27,7 +33,7 @@ export function UtilisationMetricCard({
 
   const onlineFillPct = hasOnline ? 100 - busyFillPct : 0;
 
-  // Legend colors
+  // Match legend colours
   const onlineColor = "#c4c7cf";
   const busyColor = "#f4511e";
 
@@ -37,7 +43,9 @@ export function UtilisationMetricCard({
     <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
       <div className="mb-1 flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold text-foreground">{title}</h3>
+          <h3 className="text-base font-semibold text-foreground">
+            {title}
+          </h3>
 
           {busyMetric.period_label && (
             <p className="text-xs text-muted-foreground">
@@ -66,8 +74,10 @@ export function UtilisationMetricCard({
         </div>
       )}
 
+      {/* Combined Online + Busy Bar */}
       <div className="mt-4">
         <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
+          {/* Busy portion */}
           <div
             className="h-full transition-all"
             style={{
@@ -77,6 +87,7 @@ export function UtilisationMetricCard({
             aria-label="Busy time"
           />
 
+          {/* Remaining online portion */}
           <div
             className="h-full transition-all"
             style={{
@@ -104,20 +115,32 @@ export function UtilisationMetricCard({
         </div>
       </div>
 
-      <div className="mt-2 flex items-center justify-between text-sm">
+      {/* Score */}
+      <div className="mt-3 flex items-center justify-between text-sm">
         <span className="text-muted-foreground">Your Score</span>
+
         <span className="font-semibold text-foreground">
           {formatMetricValue(busyMetric.score, busyMetric.unit)}
         </span>
       </div>
 
+      {/* Utilisation */}
       <div className="mt-2 flex items-center justify-between text-sm">
         <span className="text-muted-foreground">Utilisation</span>
+
         <span className="font-semibold text-foreground">
           {hasOnline ? `${utilisationPct.toFixed(1)}%` : "N/A"}
         </span>
       </div>
 
+      {/* Description */}
+      {description && (
+        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+          {description}
+        </p>
+      )}
+
+      {/* Rank */}
       {showBenchmark && busyMetric.rank !== null && (
         <p className="mt-2 text-xs font-medium text-foreground">
           Rank: {busyMetric.rank.toLocaleString("en-IN")}
