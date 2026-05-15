@@ -5,9 +5,13 @@ import type { ApiExpert } from "@/services/dashboardApi";
 interface Props {
   expert: ApiExpert;
   onLogout: () => void;
+  lastUpdated?: string;
 }
 
-export function ExpertProfileCard({ expert, onLogout }: Props) {
+export function ExpertProfileCard({
+  expert,
+  onLogout,
+  lastUpdated,}: Props) {
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
       <div className="flex items-center gap-3">
@@ -18,6 +22,7 @@ export function ExpertProfileCard({ expert, onLogout }: Props) {
           <p className="truncate text-base font-semibold text-foreground">{expert.name}</p>
           <p className="truncate text-sm text-muted-foreground">+91 {expert.phone_number}</p>
           <p className="truncate text-xs text-muted-foreground">Expert ID: {expert.expert_id}</p>
+          {lastUpdated && (<p className="mt-1 truncate text-[11px] text-muted-foreground">Last synced: {lastUpdated}</p>)}
         </div>
         <button
           onClick={onLogout}
