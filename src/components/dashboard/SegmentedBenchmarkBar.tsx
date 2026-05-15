@@ -13,7 +13,7 @@ const getSafeStatusColor = (status: ApiStatus | null) => {
   const normalized = String(status).trim().toLowerCase();
 
   if (normalized === "weak") return "var(--status-critical)";
-  if (normalized === "stable") return "var(--status-stable)";
+  if (normalized === "average") return "var(--status-stable)";
   if (normalized === "strong") return "var(--status-strong)";
   if (normalized === "elite") return "var(--status-elite)";
 
@@ -89,7 +89,7 @@ export function SegmentedBenchmarkBar({ bands, score, status }: Props) {
           color: "var(--status-critical)",
         },
         {
-          key: "stable",
+          key: "average",
           left: 40,
           width: 30,
           color: "var(--status-stable)",
@@ -115,7 +115,7 @@ export function SegmentedBenchmarkBar({ bands, score, status }: Props) {
           color: "var(--status-critical)",
         },
         {
-          key: "stable",
+          key: "average",
           left: 40,
           width: 30,
           color: "var(--status-stable)",
