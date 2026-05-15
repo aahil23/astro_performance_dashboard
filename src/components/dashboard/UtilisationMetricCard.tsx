@@ -20,19 +20,25 @@ export function UtilisationMetricCard({
 
   const hasOnline = onlineScore > 0;
   const utilisationPct = hasOnline ? (busyScore / onlineScore) * 100 : 0;
-  const fillPct = Math.min(100, Math.max(0, utilisationPct));
 
-  const fillColor = busyMetric.status
-    ? getStatusColor(busyMetric.status)
-    : "var(--primary)";
+  const busyFillPct = hasOnline
+    ? Math.min(100, Math.max(0, (busyScore / onlineScore) * 100))
+    : 0;
 
-  const busyLabelLeft = Math.min(96, Math.max(4, fillPct));
+  const onlineFillPct = hasOnline ? 100 - busyFillPct : 0;
+
+  // Legend colors
+  const onlineColor = "#c4c7cf";
+  const busyColor = "#f4511e";
+
+  const busyLabelLeft = Math.min(96, Math.max(4, busyFillPct));
 
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
       <div className="mb-1 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-foreground">{title}</h3>
+
           {busyMetric.period_label && (
             <p className="text-xs text-muted-foreground">
               {busyMetric.period_label}
@@ -61,14 +67,23 @@ export function UtilisationMetricCard({
       )}
 
       <div className="mt-4">
-        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
           <div
-            className="h-full rounded-full transition-all"
+            className="h-full transition-all"
             style={{
-              width: `${fillPct}%`,
-              backgroundColor: fillColor,
+              width: `${busyFillPct}%`,
+              backgroundColor: busyColor,
             }}
-            aria-label="Busy time within online time"
+            aria-label="Busy time"
+          />
+
+          <div
+            className="h-full transition-all"
+            style={{
+              width: `${onlineFillPct}%`,
+              backgroundColor: onlineColor,
+            }}
+            aria-label="Online time excluding busy time"
           />
         </div>
 
