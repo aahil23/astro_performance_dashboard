@@ -6,6 +6,7 @@ import { StatusLegend } from "@/components/dashboard/StatusLegend";
 import { MetricSection } from "@/components/dashboard/MetricSection";
 import { PerformanceMetricCard } from "@/components/dashboard/PerformanceMetricCard";
 import { CompactMetricsTable } from "@/components/dashboard/CompactMetricsTable";
+import { UtilisationMetricCard } from "@/components/dashboard/UtilisationMetricCard";
 import { ImpactOfScoreCard } from "@/components/dashboard/ImpactOfScoreCard";
 import {
   SECTION_ORDER,
@@ -23,12 +24,10 @@ export const Route = createFileRoute("/dashboard")({
 
 const COMPACT_SECTIONS = new Set<SectionKey>([
   "earnings_overview",
-  "engagement_overview",
 ]);
 
 const SCORE_LABELS: Partial<Record<SectionKey, string>> = {
   earnings_overview: "Earnings",
-  engagement_overview: "Value",
 };
 
 const getMetricPriority = (key: string) => {
@@ -128,7 +127,9 @@ function DashboardSections({ data }: { data: DashboardResponse }) {
 
         return (
           <MetricSection key={key} title={SECTION_TITLES[key]}>
-            {COMPACT_SECTIONS.has(key) ? (
+            {key === "engagement_overview" ? (
+              <UtilisationSection metrics={sortedMetrics} />
+            ) : COMPACT_SECTIONS.has(key) ? (
               <CompactMetricsTable
                 metrics={sortedMetrics}
                 scoreLabel={SCORE_LABELS[key]}
@@ -145,5 +146,50 @@ function DashboardSections({ data }: { data: DashboardResponse }) {
         );
       })}
     </>
+  );
+}
+
+const UTILISATION_PAIRS: Array<{
+  title: string;
+  busyKey: string;
+  onlineKey: string;
+  showBenchmark: boolean;
+}> = [
+  { title: "Chat Utilisation", busyKey: "chat_busy_time_l7", onlineKey: "chat_online_time_l7", showBenchmark: true },
+  { title: "Audio Utilisation", busyKey: "audio_busy_time_l7", onlineKey: "audio_online_time_l7", showBenchmark: true },
+  { title: "Video Utilisation", busyKey: "video_busy_time_l7", onlineKey: "video_online_time_l7", showBenchmark: false },
+];
+
+function UtilisationSection({ metrics }: { metrics: ApiMetric[] }) {
+  const byKey = new Map(metrics.map((m) => [m.metric_key, m]));
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-4 px-1 pb-1">
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/40" />
+          <span className="text-xs text-muted-foreground">Online Time</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: "var(--primary)" }} />
+          <span className="text-xs text-muted-foreground">Busy Time</span>
+        </div>
+      </div>
+
+      {UTILISATION_PAIRS.map((pair) => {
+        const busy = byKey.get(pair.busyKey);
+        const online = byKey.get(pair.onlineKey);
+        if (!busy || !online) return null;
+        return (
+          <UtilisationMetricCard
+            key={pair.title}
+            title={pair.title}
+            busyMetric={busy}
+            onlineMetric={online}
+            showBenchmark={pair.showBenchmark}
+          />
+        );
+      })}
+    </div>
   );
 }
