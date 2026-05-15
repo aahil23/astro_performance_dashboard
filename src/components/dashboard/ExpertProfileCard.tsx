@@ -22,7 +22,7 @@ export function ExpertProfileCard({
           <p className="truncate text-base font-semibold text-foreground">{expert.name}</p>
           <p className="truncate text-sm text-muted-foreground">+91 {expert.phone_number}</p>
           <p className="truncate text-xs text-muted-foreground">Expert ID: {expert.expert_id}</p>
-          {lastUpdated && (<p className="mt-1 truncate text-[11px] text-muted-foreground">Last synced: {lastUpdated}</p>)}
+          {lastUpdated && (<p className="mt-1 truncate text-[11px] text-muted-foreground">Last Updated: {lastUpdated}</p>)}
         </div>
         <button
           onClick={onLogout}
