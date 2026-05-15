@@ -56,8 +56,8 @@ export function UtilisationMetricCard({
         </div>
       )}
 
-      <div className="mt-4">
-        <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-muted">
+      <div className="mt-3">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
           <div
             className="h-full rounded-full transition-all"
             style={{ width: `${fillPct}%`, backgroundColor: fillColor }}
@@ -66,25 +66,14 @@ export function UtilisationMetricCard({
         </div>
       </div>
 
-      <div className="mt-3 space-y-1.5 text-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-muted-foreground">Busy Time</span>
-          <span className="font-semibold text-foreground">
-            {formatMetricValue(busyMetric.score, busyMetric.unit)}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-muted-foreground">Online Time</span>
-          <span className="font-semibold text-foreground">
-            {formatMetricValue(onlineMetric.score, onlineMetric.unit)}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-muted-foreground">Utilisation</span>
-          <span className="font-semibold text-foreground">
-            {hasOnline ? `${utilisationPct.toFixed(1)}%` : "N/A"}
-          </span>
-        </div>
+      <div className="mt-3 flex items-center justify-between text-sm">
+        <span className="text-muted-foreground">
+          Busy {formatMetricValue(busyMetric.score, busyMetric.unit)} / Online{" "}
+          {formatMetricValue(onlineMetric.score, onlineMetric.unit)}
+        </span>
+        <span className="font-semibold text-foreground">
+          {hasOnline ? `${utilisationPct.toFixed(1)}%` : "N/A"}
+        </span>
       </div>
 
       {showBenchmark && busyMetric.rank !== null && (
