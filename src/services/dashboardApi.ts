@@ -1,7 +1,7 @@
 export const DASHBOARD_API_URL =
   "https://script.google.com/a/macros/getlokalapp.com/s/AKfycbyOKfYk15W0hQtZst3n0t1vS4_OV1qAn1Wn1DKkGBwjVJIREW9K5gmQw880wWHdnGrY/exec";
 
-export type ApiStatus = "Weak" | "Stable" | "Strong" | "Elite";
+export type ApiStatus = "Weak" | "Average" | "Strong" | "Elite";
 
 export interface BenchmarkBands {
   p0: number;
@@ -164,7 +164,7 @@ export function formatMetricValue(score: number, unit: string): string {
 
 export const STATUS_COLORS: Record<ApiStatus, string> = {
   Weak: "var(--status-critical)",
-  Stable: "var(--status-stable)",
+  Average: "var(--status-stable)",
   Strong: "var(--status-strong)",
   Elite: "var(--status-elite)",
 };
