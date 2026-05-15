@@ -26,13 +26,17 @@ export function UtilisationMetricCard({
     ? getStatusColor(busyMetric.status)
     : "var(--primary)";
 
+  const busyLabelLeft = Math.min(96, Math.max(4, fillPct));
+
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
       <div className="mb-1 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-foreground">{title}</h3>
           {busyMetric.period_label && (
-            <p className="text-xs text-muted-foreground">{busyMetric.period_label}</p>
+            <p className="text-xs text-muted-foreground">
+              {busyMetric.period_label}
+            </p>
           )}
         </div>
 
@@ -56,21 +60,44 @@ export function UtilisationMetricCard({
         </div>
       )}
 
-      <div className="mt-3">
+      <div className="mt-4">
         <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
           <div
             className="h-full rounded-full transition-all"
-            style={{ width: `${fillPct}%`, backgroundColor: fillColor }}
-            aria-label="Busy vs Online"
+            style={{
+              width: `${fillPct}%`,
+              backgroundColor: fillColor,
+            }}
+            aria-label="Busy time within online time"
           />
+        </div>
+
+        <div className="relative mt-1 h-5 text-[10px] text-muted-foreground">
+          <span
+            className="absolute whitespace-nowrap tabular-nums"
+            style={{
+              left: `${busyLabelLeft}%`,
+              transform: "translateX(-50%)",
+            }}
+          >
+            {formatMetricValue(busyMetric.score, busyMetric.unit)}
+          </span>
+
+          <span className="absolute right-0 whitespace-nowrap tabular-nums">
+            {formatMetricValue(onlineMetric.score, onlineMetric.unit)}
+          </span>
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">
-          Busy {formatMetricValue(busyMetric.score, busyMetric.unit)} / Online{" "}
-          {formatMetricValue(onlineMetric.score, onlineMetric.unit)}
+      <div className="mt-2 flex items-center justify-between text-sm">
+        <span className="text-muted-foreground">Your Score</span>
+        <span className="font-semibold text-foreground">
+          {formatMetricValue(busyMetric.score, busyMetric.unit)}
         </span>
+      </div>
+
+      <div className="mt-2 flex items-center justify-between text-sm">
+        <span className="text-muted-foreground">Utilisation</span>
         <span className="font-semibold text-foreground">
           {hasOnline ? `${utilisationPct.toFixed(1)}%` : "N/A"}
         </span>
