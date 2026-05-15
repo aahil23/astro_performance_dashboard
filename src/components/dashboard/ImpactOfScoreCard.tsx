@@ -16,29 +16,37 @@ export function ImpactOfScoreCard() {
           aria-controls={contentId}
           className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
         >
-          <h3 className="text-base font-bold text-foreground">Impact of Score</h3>
+          <h3 className="text-base font-bold text-foreground">
+            Impact of Score
+          </h3>
+
           <span
             aria-hidden="true"
             className="flex h-7 w-7 items-center justify-center rounded-full text-foreground/70 transition-colors hover:bg-white/40"
           >
             <ChevronUp
               className={`h-4 w-4 transition-transform duration-300 ${
-                expanded ? "rotate-0" : "rotate-0"
+                expanded ? "rotate-180" : "rotate-0"
               }`}
             />
           </span>
         </button>
+
         <div
           id={contentId}
           className={`grid transition-all duration-300 ease-out ${
-            expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+            expanded
+              ? "grid-rows-[1fr] opacity-100"
+              : "grid-rows-[0fr] opacity-0"
           }`}
         >
           <div className="overflow-hidden">
             <div className="px-4 pb-4">
               <p className="text-xs text-foreground/80">
-                Better scores can help improve visibility and increase future opportunities.
+                Better scores can help improve visibility and increase future
+                opportunities.
               </p>
+
               <Link
                 to="/impact"
                 className="mt-3 inline-block rounded-full bg-card px-4 py-1.5 text-xs font-semibold text-foreground shadow-sm hover:bg-card/80"
