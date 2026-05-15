@@ -128,20 +128,17 @@ export function SegmentedBenchmarkBar({ bands, score, status }: Props) {
         },
       ];
 
-  const thresholds = hasEliteBand
-    ? [
-        { key: "p0", value: Number(bands.p0), position: 0 },
-        { key: "p75", value: Number(bands.p75), position: 40 },
-        { key: "p90", value: Number(bands.p90), position: 70 },
-        { key: "p95", value: Number(bands.p95), position: 90 },
-        { key: "p100", value: Number(bands.p100), position: 100 },
-      ]
-    : [
-        { key: "p0", value: Number(bands.p0), position: 0 },
-        { key: "p75", value: Number(bands.p75), position: 40 },
-        { key: "p90", value: Number(bands.p90), position: 70 },
-        { key: "p95", value: Number(bands.p95), position: 100 },
-      ];
+const thresholds = hasEliteBand
+  ? [
+      { key: "p75", value: Number(bands.p75), position: 40 },
+      { key: "p90", value: Number(bands.p90), position: 70 },
+      { key: "p95", value: Number(bands.p95), position: 90 },
+    ]
+  : [
+      { key: "p75", value: Number(bands.p75), position: 40 },
+      { key: "p90", value: Number(bands.p90), position: 70 },
+      { key: "p95", value: Number(bands.p95), position: 100 },
+    ];
 
   const fillPct = getScorePosition(Number(score), bands, hasEliteBand);
   const fillColor = getSafeStatusColor(status);
