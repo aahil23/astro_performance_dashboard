@@ -62,36 +62,36 @@ export const METRIC_CONFIG: Record<string, { title: string; description: string 
   d0_ttpu: {
     title: "D0 TTPU",
     description:
-      "D0 TTPU shows short-term user conversion performance from the latest eligible users.",
+      "D0 TTPU measures average talk time per user on the first booking day, based on the latest 200 user–expert pairs.",
   },
   d14_ttpu: {
     title: "D14 TTPU",
     description:
-      "D14 TTPU shows longer-term user conversion performance from the latest eligible users.",
+      "D14 TTPU measures average talk time per user accumulated within 14 days of the first booking, based on the latest 200 user–expert pairs that have completed the 14-day window.",
   },
   avg_chat_rating: {
     title: "Average Chat Rating",
-    description: "Average rating received from paid chat consultations.",
+    description: "Average user rating from repeat chat consultations over the last 90 days.",
   },
   avg_audio_rating: {
     title: "Average Audio Rating",
-    description: "Average rating received from paid audio consultations.",
+    description: "Average user rating from repeat audio consultations over the last 90 days.",
   },
   avg_video_rating: {
     title: "Average Video Rating",
-    description: "Average rating received from paid video consultations.",
+    description: "Average user rating from repeat video consultations over the last 90 days.",
   },
   chat_available_hours: {
     title: "Chat Available Hours",
-    description: "Total chat availability hours in the selected period.",
+    description: "Average daily chat availability hours over the last 7 days.",
   },
   audio_available_hours: {
     title: "Audio Available Hours",
-    description: "Total audio availability hours in the selected period.",
+    description: "Average daily audio availability hours over the last 7 days.",
   },
   video_available_hours: {
     title: "Video Available Hours",
-    description: "Total video availability hours in the selected period.",
+    description: "Average daily video availability hours over the last 7 days.",
   },
   earnings_l7: {
     title: "Last 7 Days Earnings",
