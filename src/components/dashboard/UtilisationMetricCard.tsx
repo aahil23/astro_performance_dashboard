@@ -44,8 +44,8 @@ export function UtilisationMetricCard({
 
   const onlineFillPct = hasOnline ? 100 - busyFillPct : 0;
 
-  const onlineColor = "#7FC8F8";
-const busyColor = "#5AA9E6";
+  const busyColor = "#3E8FB0";
+  const onlineColor = "#BFE4FA";
 
   const busyLabelLeft = Math.min(96, Math.max(4, busyFillPct));
 
@@ -96,8 +96,8 @@ const busyColor = "#5AA9E6";
         </span>
       </div>
 
-      <div className="mt-3">
-        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+      <div className="mt-2">
+        <p className="mb-1 text-[10px] font-medium text-muted-foreground">
           Busy vs Online
         </p>
 
@@ -121,7 +121,7 @@ const busyColor = "#5AA9E6";
           />
         </div>
 
-        <div className="relative mt-1 h-5 text-[10px] text-muted-foreground">
+        <div className="relative mt-0.5 h-4 text-[10px] text-muted-foreground">
           <span
             className="absolute whitespace-nowrap tabular-nums"
             style={{
