@@ -1,6 +1,7 @@
 import type { ApiMetric } from "@/services/dashboardApi";
 import {
   formatMetricValue,
+  formatPeriodLabel,
   getMetricDescription,
   getMetricTitle,
   getStatusColor,
@@ -10,10 +11,7 @@ import { SegmentedBenchmarkBar } from "./SegmentedBenchmarkBar";
 export function PerformanceMetricCard({ metric }: { metric: ApiMetric }) {
   const title = getMetricTitle(metric.metric_key);
   const description = getMetricDescription(metric.metric_key);
-
-  const formattedPeriodLabel = metric.period_label
-    ?.replaceAll("_", " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
+  const formattedPeriodLabel = formatPeriodLabel(metric.period_label);
 
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
