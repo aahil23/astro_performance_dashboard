@@ -196,6 +196,14 @@ export function getStatusColor(status: ApiStatus | null): string {
   return STATUS_COLORS[status] ?? "var(--status-na)";
 }
 
+export function formatPeriodLabel(periodLabel?: string): string {
+  if (!periodLabel) return "";
+
+  return periodLabel
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 export class DashboardApiError extends Error {
   constructor(
     message: string,
