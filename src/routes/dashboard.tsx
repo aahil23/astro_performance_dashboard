@@ -8,6 +8,7 @@ import { PerformanceMetricCard } from "@/components/dashboard/PerformanceMetricC
 import { CompactMetricsTable } from "@/components/dashboard/CompactMetricsTable";
 import { UtilisationMetricCard } from "@/components/dashboard/UtilisationMetricCard";
 import { ImpactOfScoreCard } from "@/components/dashboard/ImpactOfScoreCard";
+import { WeeklyFunnelTrends } from "@/components/dashboard/WeeklyFunnelTrends";
 import {
   SECTION_ORDER,
   SECTION_TITLES,
@@ -130,23 +131,28 @@ function DashboardSections({ data }: { data: DashboardResponse }) {
         const sortedMetrics = sortMetrics(metrics);
 
         return (
-          <MetricSection key={key} title={SECTION_TITLES[key]}>
-            {key === "engagement_overview" ? (
-              <UtilisationSection metrics={sortedMetrics} />
-            ) : COMPACT_SECTIONS.has(key) ? (
-              <CompactMetricsTable
-                metrics={sortedMetrics}
-                scoreLabel={SCORE_LABELS[key]}
-              />
-            ) : (
-              sortedMetrics.map((metric) => (
-                <PerformanceMetricCard
-                  key={metric.metric_key}
-                  metric={metric}
+          <div key={key} className="space-y-6">
+            <MetricSection title={SECTION_TITLES[key]}>
+              {key === "engagement_overview" ? (
+                <UtilisationSection metrics={sortedMetrics} />
+              ) : COMPACT_SECTIONS.has(key) ? (
+                <CompactMetricsTable
+                  metrics={sortedMetrics}
+                  scoreLabel={SCORE_LABELS[key]}
                 />
-              ))
+              ) : (
+                sortedMetrics.map((metric) => (
+                  <PerformanceMetricCard
+                    key={metric.metric_key}
+                    metric={metric}
+                  />
+                ))
+              )}
+            </MetricSection>
+            {key === "earnings_overview" && data.weekly_funnel_trends && (
+              <WeeklyFunnelTrends data={data.weekly_funnel_trends} />
             )}
-          </MetricSection>
+          </div>
         );
       })}
     </>
