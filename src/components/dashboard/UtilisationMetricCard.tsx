@@ -10,7 +10,7 @@ interface Props {
   title: string;
   busyMetric: ApiMetric;
   onlineMetric: ApiMetric;
-  utilisationMetric?: ApiMetric;
+  utilisationMetric: ApiMetric;
   showBenchmark: boolean;
 }
 
@@ -23,16 +23,16 @@ export function UtilisationMetricCard({
 }: Props) {
   const onlineScore = Number(onlineMetric.score) || 0;
   const busyScore = Number(busyMetric.score) || 0;
+  const utilisationScore = Number(utilisationMetric.score);
+
   const hasOnline = onlineScore > 0;
-  const benchmarkMetric = utilisationMetric ?? busyMetric;
-  const description = getMetricDescription(benchmarkMetric.metric_key);
+
+  const description = getMetricDescription(utilisationMetric.metric_key);
+
   const periodLabel =
-    benchmarkMetric.period_label || busyMetric.period_label || onlineMetric.period_label;
-  const utilisationScore = utilisationMetric
-    ? Number(utilisationMetric.score)
-    : hasOnline
-      ? (busyScore / onlineScore) * 100
-      : NaN;
+    utilisationMetric.period_label ||
+    busyMetric.period_label ||
+    onlineMetric.period_label;
 
   const busyFillPct = hasOnline
     ? Math.min(100, Math.max(0, (busyScore / onlineScore) * 100))
@@ -40,10 +40,10 @@ export function UtilisationMetricCard({
 
   const onlineFillPct = hasOnline ? 100 - busyFillPct : 0;
 
+  // Semantic colours for Busy vs Online bar.
+  // Do not tie this bar to benchmark status.
+  const busyColor = "#f4511e";
   const onlineColor = "var(--muted-foreground)";
-  const busyColor = busyMetric.status
-    ? getStatusColor(busyMetric.status)
-    : "var(--primary)";
 
   const busyLabelLeft = Math.min(96, Math.max(4, busyFillPct));
 
@@ -62,24 +62,24 @@ export function UtilisationMetricCard({
           )}
         </div>
 
-        {showBenchmark && benchmarkMetric.status && (
+        {showBenchmark && utilisationMetric.status && (
           <span
             className="rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
             style={{
-              backgroundColor: getStatusColor(benchmarkMetric.status),
+              backgroundColor: getStatusColor(utilisationMetric.status),
             }}
           >
-            {benchmarkMetric.status}
+            {utilisationMetric.status}
           </span>
         )}
       </div>
 
-      {showBenchmark && benchmarkMetric.benchmark_bands && (
+      {showBenchmark && utilisationMetric.benchmark_bands && (
         <div className="mt-4">
           <SegmentedBenchmarkBar
-            bands={benchmarkMetric.benchmark_bands}
-            score={benchmarkMetric.score}
-            status={benchmarkMetric.status}
+            bands={utilisationMetric.benchmark_bands}
+            score={Number(utilisationMetric.score)}
+            status={utilisationMetric.status}
           />
         </div>
       )}
@@ -142,9 +142,9 @@ export function UtilisationMetricCard({
         </p>
       )}
 
-      {showBenchmark && benchmarkMetric.rank !== null && (
+      {showBenchmark && utilisationMetric.rank !== null && (
         <p className="mt-2 text-xs font-medium text-foreground">
-          Rank: {benchmarkMetric.rank.toLocaleString("en-IN")}
+          Rank: {utilisationMetric.rank.toLocaleString("en-IN")}
         </p>
       )}
     </div>
