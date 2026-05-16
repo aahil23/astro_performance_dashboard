@@ -49,6 +49,10 @@ export function UtilisationMetricCard({
 
   const busyLabelLeft = Math.min(96, Math.max(4, busyFillPct));
 
+  // Dynamic label positions
+  const busyTextPosition = busyFillPct / 2;
+  const onlineTextPosition = busyFillPct + onlineFillPct / 2;
+
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
       <div className="mb-1 flex items-start justify-between gap-3">
@@ -97,9 +101,31 @@ export function UtilisationMetricCard({
       </div>
 
       <div className="mt-2">
-        <p className="mb-1 text-[10px] font-medium text-muted-foreground">
-          Busy vs Online
-        </p>
+        <div className="relative mb-1 h-4 text-[9px] font-medium text-muted-foreground">
+          {busyFillPct >= 12 && (
+            <span
+              className="absolute whitespace-nowrap"
+              style={{
+                left: `${busyTextPosition}%`,
+                transform: "translateX(-50%)",
+              }}
+            >
+              Busy
+            </span>
+          )}
+
+          {onlineFillPct >= 12 && (
+            <span
+              className="absolute whitespace-nowrap"
+              style={{
+                left: `${onlineTextPosition}%`,
+                transform: "translateX(-50%)",
+              }}
+            >
+              Online
+            </span>
+          )}
+        </div>
 
         <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
           <div
