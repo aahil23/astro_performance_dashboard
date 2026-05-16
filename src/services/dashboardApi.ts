@@ -58,7 +58,10 @@ export const SECTION_TITLES: Record<SectionKey, string> = {
   engagement_overview: "Utilisation Overview",
 };
 
-export const METRIC_CONFIG: Record<string, { title: string; description: string }> = {
+export const METRIC_CONFIG: Record<
+  string,
+  { title: string; description: string }
+> = {
   d0_ttpu: {
     title: "D0 TTPU",
     description:
@@ -71,15 +74,18 @@ export const METRIC_CONFIG: Record<string, { title: string; description: string 
   },
   avg_chat_rating: {
     title: "Average Chat Rating",
-    description: "Average user rating from repeat chat consultations over the last 90 days.",
+    description:
+      "Average user rating from repeat chat consultations over the last 90 days.",
   },
   avg_audio_rating: {
     title: "Average Audio Rating",
-    description: "Average user rating from repeat audio consultations over the last 90 days.",
+    description:
+      "Average user rating from repeat audio consultations over the last 90 days.",
   },
   avg_video_rating: {
     title: "Average Video Rating",
-    description: "Average user rating from repeat video consultations over the last 90 days.",
+    description:
+      "Average user rating from repeat video consultations over the last 90 days.",
   },
   chat_available_hours: {
     title: "Chat Available Hours",
@@ -107,27 +113,42 @@ export const METRIC_CONFIG: Record<string, { title: string; description: string 
   },
   chat_busy_time_l7: {
     title: "Chat Busy Time",
-    description: "Total busy chat minutes in the last 7 days.",
+    description: "Total busy chat time in the last 7 days.",
   },
   chat_online_time_l7: {
     title: "Chat Online Time",
-    description: "Total online chat minutes in the last 7 days.",
+    description: "Total online chat time in the last 7 days.",
   },
   audio_busy_time_l7: {
     title: "Audio Busy Time",
-    description: "Total busy audio minutes in the last 7 days.",
+    description: "Total busy audio time in the last 7 days.",
   },
   audio_online_time_l7: {
     title: "Audio Online Time",
-    description: "Total online audio minutes in the last 7 days.",
+    description: "Total online audio time in the last 7 days.",
   },
   video_busy_time_l7: {
     title: "Video Busy Time",
-    description: "Total busy video minutes in the last 7 days.",
+    description: "Total busy video time in the last 7 days.",
   },
   video_online_time_l7: {
     title: "Video Online Time",
-    description: "Total online video minutes in the last 7 days.",
+    description: "Total online video time in the last 7 days.",
+  },
+  chat_utilisation_l7: {
+    title: "Chat Utilisation",
+    description:
+      "Percentage of online chat time spent in paid chat consultations over the last 7 days.",
+  },
+  audio_utilisation_l7: {
+    title: "Audio Utilisation",
+    description:
+      "Percentage of online audio time spent in paid audio consultations over the last 7 days.",
+  },
+  video_utilisation_l7: {
+    title: "Video Utilisation",
+    description:
+      "Percentage of online video time spent in paid video consultations over the last 7 days.",
   },
 };
 
@@ -149,7 +170,7 @@ export function getMetricDescription(key: string): string {
 export function formatMetricValue(score: number, unit: string): string {
   switch ((unit || "").toLowerCase()) {
     case "percent":
-      return `${score}%`;
+      return `${Number(score).toFixed(1)}%`;
     case "rating":
       return Number(score).toFixed(2);
     case "hours":
@@ -176,7 +197,10 @@ export function getStatusColor(status: ApiStatus | null): string {
 }
 
 export class DashboardApiError extends Error {
-  constructor(message: string, public kind: "not_found" | "disabled" | "network") {
+  constructor(
+    message: string,
+    public kind: "not_found" | "disabled" | "network",
+  ) {
     super(message);
   }
 }
@@ -185,6 +209,7 @@ export async function fetchDashboardByPhone(
   phoneNumber: string,
 ): Promise<DashboardResponse> {
   let res: Response;
+
   try {
     res = await fetch(
       `${DASHBOARD_API_URL}?action=getDashboardByPhone&phone_number=${encodeURIComponent(
@@ -199,6 +224,7 @@ export async function fetchDashboardByPhone(
   }
 
   let json: { success: boolean; message?: string } & Partial<DashboardResponse>;
+
   try {
     json = await res.json();
   } catch {
@@ -211,18 +237,21 @@ export async function fetchDashboardByPhone(
   if (json.success) return json as DashboardResponse;
 
   const msg = (json.message || "").toLowerCase();
+
   if (msg.includes("not found")) {
     throw new DashboardApiError(
       "No dashboard found for this mobile number.",
       "not_found",
     );
   }
+
   if (msg.includes("disabled")) {
     throw new DashboardApiError(
       "Your dashboard access is currently disabled.",
       "disabled",
     );
   }
+
   throw new DashboardApiError(
     "Something went wrong. Please try again.",
     "network",
