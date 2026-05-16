@@ -22,8 +22,8 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
 
-const ONLINE_TIME_COLOR = "#c4c7cf";
-const BUSY_TIME_COLOR = "#f4511e";
+const ONLINE_TIME_COLOR = "#BFE4FA";
+const BUSY_TIME_COLOR = "#3E8FB0";
 
 const COMPACT_SECTIONS = new Set<SectionKey>(["earnings_overview"]);
 
