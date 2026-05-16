@@ -46,16 +46,19 @@ const getMetricPriority = (key: string) => {
 
     chat_online_time_l7: 9,
     chat_busy_time_l7: 10,
+    chat_utilisation_l7: 11,
 
-    audio_online_time_l7: 11,
-    audio_busy_time_l7: 12,
+    audio_online_time_l7: 12,
+    audio_busy_time_l7: 13,
+    audio_utilisation_l7: 14,
 
-    video_online_time_l7: 13,
-    video_busy_time_l7: 14,
+    video_online_time_l7: 15,
+    video_busy_time_l7: 16,
+    video_utilisation_l7: 17,
 
-    earnings_l7: 15,
-    earnings_l14: 16,
-    earnings_l30: 17,
+    earnings_l7: 18,
+    earnings_l14: 19,
+    earnings_l30: 20,
   };
 
   return priorityMap[key] ?? 999;
@@ -63,13 +66,13 @@ const getMetricPriority = (key: string) => {
 
 const sortMetrics = (metrics: ApiMetric[]) =>
   [...metrics].sort(
-    (a, b) => getMetricPriority(a.metric_key) - getMetricPriority(b.metric_key)
+    (a, b) => getMetricPriority(a.metric_key) - getMetricPriority(b.metric_key),
   );
 
 function DashboardPage() {
   const navigate = useNavigate();
   const [data, setData] = useState<DashboardResponse | null>(() =>
-    dashboardStore.get()
+    dashboardStore.get(),
   );
 
   useEffect(() => {
@@ -154,25 +157,29 @@ const UTILISATION_PAIRS: Array<{
   title: string;
   busyKey: string;
   onlineKey: string;
+  utilisationKey: string;
   showBenchmark: boolean;
 }> = [
   {
     title: "Chat Utilisation",
     busyKey: "chat_busy_time_l7",
     onlineKey: "chat_online_time_l7",
+    utilisationKey: "chat_utilisation_l7",
     showBenchmark: true,
   },
   {
     title: "Audio Utilisation",
     busyKey: "audio_busy_time_l7",
     onlineKey: "audio_online_time_l7",
+    utilisationKey: "audio_utilisation_l7",
     showBenchmark: true,
   },
   {
     title: "Video Utilisation",
     busyKey: "video_busy_time_l7",
     onlineKey: "video_online_time_l7",
-    showBenchmark: false,
+    utilisationKey: "video_utilisation_l7",
+    showBenchmark: true,
   },
 ];
 
@@ -202,8 +209,9 @@ function UtilisationSection({ metrics }: { metrics: ApiMetric[] }) {
       {UTILISATION_PAIRS.map((pair) => {
         const busy = byKey.get(pair.busyKey);
         const online = byKey.get(pair.onlineKey);
+        const utilisation = byKey.get(pair.utilisationKey);
 
-        if (!busy || !online) return null;
+        if (!busy || !online || !utilisation) return null;
 
         return (
           <UtilisationMetricCard
@@ -211,6 +219,7 @@ function UtilisationSection({ metrics }: { metrics: ApiMetric[] }) {
             title={pair.title}
             busyMetric={busy}
             onlineMetric={online}
+            utilisationMetric={utilisation}
             showBenchmark={pair.showBenchmark}
           />
         );
