@@ -65,12 +65,12 @@ export const METRIC_CONFIG: Record<
   d0_ttpu: {
     title: "D0 TTPU",
     description:
-      "D0 TTPU measures average talk time per user on the first booking day, based on the latest 200 user–expert pairs.",
+      "Average talk time per user on the first booking day for the latest 200 user–expert pairs.",
   },
   d14_ttpu: {
     title: "D14 TTPU",
     description:
-      "D14 TTPU measures average talk time per user accumulated within 14 days of the first booking, based on the latest 200 user–expert pairs that have completed the 14-day window.",
+      "Average talk time per user accumulated within 14 days of the first booking for the latest 200 user–expert pairs that completed the 14-day window.",
   },
   avg_chat_rating: {
     title: "Average Chat Rating",
@@ -111,44 +111,44 @@ export const METRIC_CONFIG: Record<
     title: "Last 30 Days Earnings",
     description: "Total earnings generated in the last 30 days.",
   },
-  chat_busy_time_l7: {
-    title: "Chat Busy Time",
-    description: "Total busy chat time in the last 7 days.",
-  },
-  chat_online_time_l7: {
-    title: "Chat Online Time",
-    description: "Total online chat time in the last 7 days.",
-  },
-  audio_busy_time_l7: {
-    title: "Audio Busy Time",
-    description: "Total busy audio time in the last 7 days.",
-  },
-  audio_online_time_l7: {
-    title: "Audio Online Time",
-    description: "Total online audio time in the last 7 days.",
-  },
-  video_busy_time_l7: {
-    title: "Video Busy Time",
-    description: "Total busy video time in the last 7 days.",
-  },
-  video_online_time_l7: {
-    title: "Video Online Time",
-    description: "Total online video time in the last 7 days.",
-  },
+  // chat_busy_time_l7: {
+  //   title: "Chat Busy Time",
+  //   description: "Total busy chat time in the last 7 days.",
+  // },
+  // chat_online_time_l7: {
+  //   title: "Chat Online Time",
+  //   description: "Total online chat time in the last 7 days.",
+  // },
+  // audio_busy_time_l7: {
+  //   title: "Audio Busy Time",
+  //   description: "Total busy audio time in the last 7 days.",
+  // },
+  // audio_online_time_l7: {
+  //   title: "Audio Online Time",
+  //   description: "Total online audio time in the last 7 days.",
+  // },
+  // video_busy_time_l7: {
+  //   title: "Video Busy Time",
+  //   description: "Total busy video time in the last 7 days.",
+  // },
+  // video_online_time_l7: {
+  //   title: "Video Online Time",
+  //   description: "Total online video time in the last 7 days.",
+  // },
   chat_utilisation_l7: {
     title: "Chat Utilisation",
     description:
-      "Percentage of online chat time spent in paid chat consultations over the last 7 days.",
+      "Percentage of online chat time spent in consultations over the last 7 days. Busy hours represent consultation time within total online hours.",
   },
   audio_utilisation_l7: {
     title: "Audio Utilisation",
     description:
-      "Percentage of online audio time spent in paid audio consultations over the last 7 days.",
+      "Percentage of online audio time spent in consultations over the last 7 days. Busy hours represent consultation time within total online hours.",
   },
   video_utilisation_l7: {
     title: "Video Utilisation",
     description:
-      "Percentage of online video time spent in paid video consultations over the last 7 days.",
+      "Percentage of online video time spent in consultations over the last 7 days. Busy hours represent consultation time within total online hours.",
   },
 };
 
