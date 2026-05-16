@@ -101,7 +101,7 @@ export function UtilisationMetricCard({
       </div>
 
       <div className="mt-2">
-        <div className="relative mb-1 h-4 text-[9px] font-medium text-muted-foreground">
+        <div className="relative mb-0.5 h-3 text-[9px] font-medium text-muted-foreground">
           {busyFillPct >= 12 && (
             <span
               className="absolute whitespace-nowrap"
