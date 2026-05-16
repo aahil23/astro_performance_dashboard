@@ -43,7 +43,7 @@ export function UtilisationMetricCard({
   // Semantic colours for Busy vs Online bar.
   // Do not tie this bar to benchmark status.
   const busyColor = "#f4511e";
-  const onlineColor = "var(--muted-foreground)";
+  const onlineColor = "#c4c7cf";
 
   const busyLabelLeft = Math.min(96, Math.max(4, busyFillPct));
 
