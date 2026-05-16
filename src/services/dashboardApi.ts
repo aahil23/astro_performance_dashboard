@@ -40,6 +40,33 @@ export interface DashboardResponse {
   expert: ApiExpert;
   metrics_by_section: Record<SectionKey, ApiMetric[]>;
   meta: { generated_at: string };
+  weekly_funnel_trends?: WeeklyFunnelTrends;
+}
+
+export interface FunnelDataPoint {
+  weekday: string;
+  value: number;
+}
+
+export interface FunnelMetric {
+  title: string;
+  metric_key: string;
+  trend_percentage: number;
+  trend_direction: "up" | "down" | "flat" | string;
+  weekly_average: number;
+  best_day: string;
+  data: FunnelDataPoint[];
+}
+
+export interface Funnel {
+  title: string;
+  subtitle?: string;
+  type: "d0" | "dn" | string;
+  metrics: FunnelMetric[];
+}
+
+export interface WeeklyFunnelTrends {
+  funnels: Funnel[];
 }
 
 export const SECTION_ORDER: SectionKey[] = [
