@@ -1,6 +1,7 @@
 import type { ApiMetric } from "@/services/dashboardApi";
 import {
   formatMetricValue,
+  formatPeriodLabel,
   getMetricTitle,
 } from "@/services/dashboardApi";
 
@@ -35,44 +36,38 @@ export function CompactMetricsTable({
         <span className="text-right">Rank</span>
       </div>
 
-      {sortedMetrics.map((m, i) => {
-        const formattedPeriodLabel = m.period_label
-          ?.replaceAll("_", " ")
-          .replace(/\b\w/g, (char) => char.toUpperCase());
+      {sortedMetrics.map((m, i) => (
+        <div
+          key={m.metric_key}
+          className={`grid grid-cols-[1fr_auto_auto] items-center gap-4 px-4 py-2.5 ${
+            i !== sortedMetrics.length - 1
+              ? "border-b border-border/60"
+              : ""
+          }`}
+        >
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              {getMetricTitle(m.metric_key)}
+            </p>
 
-        return (
-          <div
-            key={m.metric_key}
-            className={`grid grid-cols-[1fr_auto_auto] items-center gap-4 px-4 py-3 ${
-              i !== sortedMetrics.length - 1
-                ? "border-b border-border/60"
-                : ""
-            }`}
-          >
-            <div>
-              <p className="text-sm font-medium text-foreground">
-                {getMetricTitle(m.metric_key)}
+            {m.period_label && (
+              <p className="text-[11px] text-muted-foreground">
+                {formatPeriodLabel(m.period_label)}
               </p>
-
-              {formattedPeriodLabel && (
-                <p className="text-[11px] text-muted-foreground">
-                  {formattedPeriodLabel}
-                </p>
-              )}
-            </div>
-
-            <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-foreground">
-              {formatMetricValue(m.score, m.unit)}
-            </span>
-
-            <span className="text-right text-xs text-foreground">
-              {m.rank !== null
-                ? m.rank.toLocaleString("en-IN")
-                : "N/A"}
-            </span>
+            )}
           </div>
-        );
-      })}
+
+          <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-foreground">
+            {formatMetricValue(m.score, m.unit)}
+          </span>
+
+          <span className="text-right text-xs text-foreground">
+            {m.rank !== null
+              ? m.rank.toLocaleString("en-IN")
+              : "N/A"}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
