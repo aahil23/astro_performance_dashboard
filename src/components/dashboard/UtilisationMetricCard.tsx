@@ -34,16 +34,18 @@ export function UtilisationMetricCard({
     busyMetric.period_label ||
     onlineMetric.period_label;
 
+  const formattedPeriodLabel = periodLabel
+    ?.replaceAll("_", " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
   const busyFillPct = hasOnline
     ? Math.min(100, Math.max(0, (busyScore / onlineScore) * 100))
     : 0;
 
   const onlineFillPct = hasOnline ? 100 - busyFillPct : 0;
 
-  // Semantic colours for Busy vs Online bar.
-  // Do not tie this bar to benchmark status.
-  const busyColor = "#f4511e";
-  const onlineColor = "#c4c7cf";
+  const onlineColor = "#7FC8F8";
+const busyColor = "#5AA9E6";
 
   const busyLabelLeft = Math.min(96, Math.max(4, busyFillPct));
 
@@ -55,9 +57,9 @@ export function UtilisationMetricCard({
             {title}
           </h3>
 
-          {periodLabel && (
+          {formattedPeriodLabel && (
             <p className="text-xs text-muted-foreground">
-              {periodLabel}
+              {formattedPeriodLabel}
             </p>
           )}
         </div>
@@ -84,9 +86,19 @@ export function UtilisationMetricCard({
         </div>
       )}
 
-      <div className="mt-4">
-        <p className="mb-1 text-[10px] font-medium text-muted-foreground">
-          Busy Time vs Online Time
+      <div className="mt-3 flex items-center justify-between text-sm">
+        <span className="text-muted-foreground">Your Utilisation</span>
+
+        <span className="font-semibold text-foreground">
+          {Number.isFinite(utilisationScore)
+            ? `${utilisationScore.toFixed(1)}%`
+            : "N/A"}
+        </span>
+      </div>
+
+      <div className="mt-3">
+        <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          Busy vs Online
         </p>
 
         <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -124,16 +136,6 @@ export function UtilisationMetricCard({
             {formatMetricValue(onlineMetric.score, onlineMetric.unit)}
           </span>
         </div>
-      </div>
-
-      <div className="mt-3 flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">Your Utilisation</span>
-
-        <span className="font-semibold text-foreground">
-          {Number.isFinite(utilisationScore)
-            ? `${utilisationScore.toFixed(1)}%`
-            : "N/A"}
-        </span>
       </div>
 
       {description && (
