@@ -11,13 +11,22 @@ export function PerformanceMetricCard({ metric }: { metric: ApiMetric }) {
   const title = getMetricTitle(metric.metric_key);
   const description = getMetricDescription(metric.metric_key);
 
+  const formattedPeriodLabel = metric.period_label
+    ?.replaceAll("_", " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
       <div className="mb-1 flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold text-foreground">{title}</h3>
-          {metric.period_label && (
-            <p className="text-xs text-muted-foreground">{metric.period_label}</p>
+          <h3 className="text-base font-semibold text-foreground">
+            {title}
+          </h3>
+
+          {formattedPeriodLabel && (
+            <p className="text-xs text-muted-foreground">
+              {formattedPeriodLabel}
+            </p>
           )}
         </div>
 
@@ -43,6 +52,7 @@ export function PerformanceMetricCard({ metric }: { metric: ApiMetric }) {
 
       <div className="mt-3 flex items-center justify-between text-sm">
         <span className="text-muted-foreground">Your Score</span>
+
         <span className="font-semibold text-foreground">
           {formatMetricValue(metric.score, metric.unit)}
         </span>
