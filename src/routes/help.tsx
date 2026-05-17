@@ -341,7 +341,7 @@ function MetricHelp({
         {description}
       </p>
 
-      <div className="mt-3 rounded-xl bg-muted/50 p-3">
+      <div className="mt-3 rounded-xl bg-primary/10 p-3">
         <p className="text-xs font-medium text-muted-foreground">Formula</p>
         <p className="mt-1 text-sm font-medium leading-relaxed text-foreground">
           {formula}
