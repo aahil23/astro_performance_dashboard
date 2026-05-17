@@ -1,5 +1,5 @@
 export const DASHBOARD_API_URL =
-  "https://script.google.com/macros/s/AKfycbxX_6CvbvZfF8NJWTFI7_tIYQ2Mm8RnPO0AO2BtIjHtuhjvJh2TFRkO9--cEYAUp0pU/exec";
+  "https://script.google.com/macros/s/AKfycbzR-sYzeTUFYt1pfMFnJvxG2chteQVRiBiJBNWvjoZN0QFd2-LATllX6UKqfdqPgtSQ/exec";
 
 export type ApiStatus = "Weak" | "Average" | "Strong" | "Elite";
 
@@ -138,30 +138,6 @@ export const METRIC_CONFIG: Record<
     title: "Last 30 Days Earnings",
     description: "Total earnings generated in the last 30 days.",
   },
-  // chat_busy_time_l7: {
-  //   title: "Chat Busy Time",
-  //   description: "Total busy chat time in the last 7 days.",
-  // },
-  // chat_online_time_l7: {
-  //   title: "Chat Online Time",
-  //   description: "Total online chat time in the last 7 days.",
-  // },
-  // audio_busy_time_l7: {
-  //   title: "Audio Busy Time",
-  //   description: "Total busy audio time in the last 7 days.",
-  // },
-  // audio_online_time_l7: {
-  //   title: "Audio Online Time",
-  //   description: "Total online audio time in the last 7 days.",
-  // },
-  // video_busy_time_l7: {
-  //   title: "Video Busy Time",
-  //   description: "Total busy video time in the last 7 days.",
-  // },
-  // video_online_time_l7: {
-  //   title: "Video Online Time",
-  //   description: "Total online video time in the last 7 days.",
-  // },
   chat_utilisation_l7: {
     title: "Chat Utilisation",
     description:
@@ -177,6 +153,41 @@ export const METRIC_CONFIG: Record<
     description:
       "Percentage of online video time spent in consultations over the last 7 days. Busy hours represent consultation time within total online hours.",
   },
+d0_users: {
+  title: "New Users",
+  description:
+    "Unique users who connected with you for the first time that day.",
+},
+
+d0_att: {
+  title: "New User ATT",
+  description:
+    "Average talktime per new user on their first day of interaction.",
+},
+
+d0_earnings: {
+  title: "New User Earnings",
+  description:
+    "Earnings generated from first-time users that day.",
+},
+
+dn_users: {
+  title: "Repeat Users",
+  description:
+    "Unique repeat users who connected with you that day.",
+},
+
+dn_att: {
+  title: "Repeat User ATT",
+  description:
+    "Average talktime per repeat user that day.",
+},
+
+dn_earnings: {
+  title: "Repeat User Earnings",
+  description:
+    "Earnings generated from repeat users that day.",
+},
 };
 
 function toTitleCase(key: string): string {
