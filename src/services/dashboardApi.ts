@@ -1,5 +1,5 @@
 export const DASHBOARD_API_URL =
-  "https://script.google.com/macros/s/AKfycbwfPGdALeootPrsYruEYwWI0Tjn2PuuDgTOqqU3ELpkI366Kaw2_hiULovGhL70bM2o/exec";
+  "https://script.google.com/macros/s/AKfycbxX_6CvbvZfF8NJWTFI7_tIYQ2Mm8RnPO0AO2BtIjHtuhjvJh2TFRkO9--cEYAUp0pU/exec";
 
 export type ApiStatus = "Weak" | "Average" | "Strong" | "Elite";
 
