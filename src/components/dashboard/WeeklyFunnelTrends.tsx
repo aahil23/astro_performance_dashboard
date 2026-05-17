@@ -229,11 +229,13 @@ function FunnelMetricCard({
         </span>
       </div>
 
-      {description && (
-        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-          {description}
-        </p>
-      )}
+{description && (
+  <div className="mt-2 min-h-[56px]">
+    <p className="text-xs leading-relaxed text-muted-foreground">
+      {description}
+    </p>
+  </div>
+)}
 
       <div className="mt-3 flex items-center justify-center gap-1.5">
         {metrics.map((m, i) => {
