@@ -103,7 +103,7 @@ function FunnelCarousel({ funnel }: { funnel: Funnel }) {
             ref={(el) => {
               cardRefs.current[i] = el;
             }}
-            className="w-[82%] flex-none snap-center"
+            className="w-[90%] flex-none snap-center"
           >
             <FunnelMetricCard
               metric={m}
