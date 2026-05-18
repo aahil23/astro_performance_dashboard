@@ -4,6 +4,7 @@ import logo from "@/assets/logo.svg";
 import { session } from "@/lib/session";
 import { dashboardStore } from "@/lib/dashboard-store";
 import { fetchDashboardByPhone } from "@/services/dashboardApi";
+import { logAnalyticsEvent, startSession } from "@/services/analytics";
 
 export const Route = createFileRoute("/loading")({
   component: LoadingScreen,
@@ -24,6 +25,26 @@ function LoadingScreen() {
       .then((data) => {
         if (!active) return;
         dashboardStore.set(data);
+        const sessionId = startSession({
+          expert_id: data.expert.expert_id,
+          phone_number: data.expert.phone_number,
+        });
+        void logAnalyticsEvent({
+          event_name: "dashboard_login",
+          page_name: "dashboard",
+          expert_id: data.expert.expert_id,
+          phone_number: data.expert.phone_number,
+          session_id: sessionId,
+          metadata: {
+            expert_name: data.expert.name,
+            device:
+              typeof window !== "undefined" && window.innerWidth < 768
+                ? "mobile"
+                : "desktop",
+            user_agent:
+              typeof navigator !== "undefined" ? navigator.userAgent : "",
+          },
+        });
         navigate({ to: "/dashboard" });
       })
       .catch((e: Error) => {
