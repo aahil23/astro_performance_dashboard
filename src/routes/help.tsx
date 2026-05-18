@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppHeader } from "@/components/dashboard/AppHeader";
+import { usePageAnalytics } from "@/hooks/usePageAnalytics";
 
 export const Route = createFileRoute("/help")({
   component: HelpPage,
 });
 
 function HelpPage() {
+  usePageAnalytics("help");
   return (
     <div className="min-h-screen">
       <AppHeader title="Help" showHelp={false} backTo="/dashboard" />

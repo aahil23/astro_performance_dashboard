@@ -354,19 +354,10 @@ function smoothPath(pts: ReadonlyArray<readonly [number, number]>): string {
 }
 
 function getMetricSubtitle(metric: FunnelMetric): string {
-  switch (metric.unit) {
-    case "time":
-      return "Last 7 Days (In mins)";
-
-    case "currency":
-      return "Last 7 Days (In ₹)";
-
-    case "users":
-      return "Last 7 Days";
-
-    default:
-      return "Last 7 Days";
-  }
+  const key = metric.metric_key || "";
+  if (key.endsWith("_att")) return "Last 7 Days (In mins)";
+  if (key.endsWith("_earnings")) return "Last 7 Days (In ₹)";
+  return "Last 7 Days";
 }
 
 function formatCompact(n: number): string {
