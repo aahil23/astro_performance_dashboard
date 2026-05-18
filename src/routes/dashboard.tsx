@@ -18,6 +18,8 @@ import {
 } from "@/services/dashboardApi";
 import { dashboardStore } from "@/lib/dashboard-store";
 import { session } from "@/lib/session";
+import { usePageAnalytics } from "@/hooks/usePageAnalytics";
+import { clearSession, endSession } from "@/services/analytics";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
@@ -72,6 +74,7 @@ const sortMetrics = (metrics: ApiMetric[]) =>
 
 function DashboardPage() {
   const navigate = useNavigate();
+  usePageAnalytics("dashboard");
   const [data, setData] = useState<DashboardResponse | null>(() =>
     dashboardStore.get(),
   );
@@ -81,6 +84,8 @@ function DashboardPage() {
   }, [data, navigate]);
 
   const logout = () => {
+    endSession("logout");
+    clearSession();
     dashboardStore.clear();
     session.logout();
     setData(null);
