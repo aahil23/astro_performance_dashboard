@@ -4,6 +4,8 @@ import {
   formatPeriodLabel,
   getMetricTitle,
 } from "@/services/dashboardApi";
+import { useRef } from "react";
+import { useMetricViewLogger } from "@/hooks/useMetricViewLogger";
 
 interface Props {
   metrics: ApiMetric[];
@@ -37,37 +39,62 @@ export function CompactMetricsTable({
       </div>
 
       {sortedMetrics.map((m, i) => (
-        <div
+        <CompactMetricRow
           key={m.metric_key}
-          className={`grid grid-cols-[1fr_auto_auto] items-center gap-4 px-4 py-2.5 ${
-            i !== sortedMetrics.length - 1
-              ? "border-b border-border/60"
-              : ""
-          }`}
-        >
-          <div>
-            <p className="text-sm font-medium text-foreground">
-              {getMetricTitle(m.metric_key)}
-            </p>
-
-            {m.period_label && (
-              <p className="text-[11px] text-muted-foreground">
-                {formatPeriodLabel(m.period_label)}
-              </p>
-            )}
-          </div>
-
-          <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-foreground">
-            {formatMetricValue(m.score, m.unit)}
-          </span>
-
-          <span className="text-right text-xs text-foreground">
-            {m.rank !== null
-              ? m.rank.toLocaleString("en-IN")
-              : "N/A"}
-          </span>
-        </div>
+          metric={m}
+          isLast={i === sortedMetrics.length - 1}
+        />
       ))}
+    </div>
+  );
+}
+
+function CompactMetricRow({
+  metric,
+  isLast,
+}: {
+  metric: ApiMetric;
+  isLast: boolean;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const title = getMetricTitle(metric.metric_key);
+  useMetricViewLogger(ref, {
+    metric_key: metric.metric_key,
+    metadata: {
+      metric_title: title,
+      score: metric.score,
+      unit: metric.unit,
+      rank: metric.rank,
+      status: metric.status,
+      period_label: metric.period_label,
+      benchmark_bands: metric.benchmark_bands,
+    },
+  });
+
+  return (
+    <div
+      ref={ref}
+      className={`grid grid-cols-[1fr_auto_auto] items-center gap-4 px-4 py-2.5 ${
+        !isLast ? "border-b border-border/60" : ""
+      }`}
+    >
+      <div>
+        <p className="text-sm font-medium text-foreground">{title}</p>
+
+        {metric.period_label && (
+          <p className="text-[11px] text-muted-foreground">
+            {formatPeriodLabel(metric.period_label)}
+          </p>
+        )}
+      </div>
+
+      <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-foreground">
+        {formatMetricValue(metric.score, metric.unit)}
+      </span>
+
+      <span className="text-right text-xs text-foreground">
+        {metric.rank !== null ? metric.rank.toLocaleString("en-IN") : "N/A"}
+      </span>
     </div>
   );
 }
