@@ -33,7 +33,6 @@ function HelpPage() {
               notes={[
                 "Only completed bookings are included.",
                 "Only your latest 200 distinct users are considered.",
-                "If there are fewer than 200 eligible users, the dashboard may show insufficient data.",
               ]}
             />
 
@@ -60,7 +59,6 @@ function HelpPage() {
               notes={[
                 "Only submitted ratings above 0 are included.",
                 "Only repeat bookings are counted.",
-                "Requires at least 13 rated chat bookings.",
               ]}
             />
 
@@ -73,7 +71,6 @@ function HelpPage() {
               notes={[
                 "Only submitted ratings above 0 are included.",
                 "Only repeat bookings are counted.",
-                "Requires at least 7 rated audio bookings.",
               ]}
             />
 
@@ -86,7 +83,6 @@ function HelpPage() {
               notes={[
                 "Only submitted ratings above 0 are included.",
                 "Only repeat bookings are counted.",
-                "Requires at least 3 rated video bookings.",
               ]}
             />
           </HelpSection>
@@ -226,10 +222,10 @@ function HelpPage() {
               notes={["Only completed expert earning transactions are included."]}
             />
 
-            <InfoBlock
+            {/* <InfoBlock
               title="Trend %"
               text="Trend percentage compares the latest day with the first day in the 7-day window. Formula: (Latest Day Value - First Day Value) ÷ First Day Value × 100."
-            />
+            /> */}
 
             <InfoBlock
               title="Weekly Average and Best Day"
@@ -288,7 +284,7 @@ function HelpPage() {
 
             <InfoBlock
               title="Insufficient Data"
-              text="Some metrics need a minimum number of eligible users or rated bookings. If that minimum is not met, the dashboard may show Insufficient Data instead of a performance status."
+              text="Some metrics require a minimum threshold. If that minimum is not met, the dashboard may show Insufficient Data instead of a performance status."
             />
           </HelpSection>
         </div>
