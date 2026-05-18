@@ -181,6 +181,7 @@ function FunnelMetricCard({
           </p>
         </div>
 
+        {/*
         <div
           className={cn(
             "flex items-center gap-1 text-xs font-medium tabular-nums",
@@ -190,6 +191,7 @@ function FunnelMetricCard({
           <TrendIcon className="h-3.5 w-3.5" />
           <span>{pctStr}</span>
         </div>
+        */}
       </div>
 
       <div className="mt-3">
@@ -229,13 +231,13 @@ function FunnelMetricCard({
         </span>
       </div>
 
-{description && (
-  <div className="mt-2 min-h-[56px]">
-    <p className="text-xs leading-relaxed text-muted-foreground">
-      {description}
-    </p>
-  </div>
-)}
+      {description && (
+        <div className="mt-2 min-h-[56px]">
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            {description}
+          </p>
+        </div>
+      )}
 
       <div className="mt-3 flex items-center justify-center gap-1.5">
         {metrics.map((m, i) => {
