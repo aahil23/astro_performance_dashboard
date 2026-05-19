@@ -332,20 +332,19 @@ export function endSession(
 
     sessionStorage.setItem(SESSION_ENDED_FLAG, "1");
 
-    if (reason === "unload") {
-      logAnalyticsEventBeacon(input);
+if (reason === "unload") {
+  logAnalyticsEventBeacon(input);
 
-      // Important:
-      // Refresh/tab close/browser close should end the current session.
-      // Clearing this ensures the next dashboard load creates a new session_id.
-      clearSession();
-    } else {
-      void logAnalyticsEvent(input);
+  sessionStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_ENDED_FLAG);
+  sessionStorage.removeItem(SESSION_STARTED_LOGGED_KEY);
+} else {
+  void logAnalyticsEvent(input);
 
-      if (reason === "logout") {
-        clearSession();
-      }
-    }
+  if (reason === "logout") {
+    clearSession();
+  }
+}
 
     if (inactivityTimer) {
       clearTimeout(inactivityTimer);
