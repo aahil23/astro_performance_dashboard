@@ -13,8 +13,6 @@ export interface AnalyticsEventPayload {
   expert_id: string;
   phone_number: string;
   session_id: string;
-  page_name: string;
-  metric_key: string;
   created_at: string;
   ended_at: string;
   duration_minutes: number | "";
@@ -23,8 +21,6 @@ export interface AnalyticsEventPayload {
 
 export interface AnalyticsEventInput {
   event_name: string;
-  page_name: string;
-  metric_key?: string;
   created_at?: string;
   ended_at?: string;
   duration_minutes?: number | "";
@@ -149,8 +145,6 @@ function buildPayload(input: AnalyticsEventInput): AnalyticsEventPayload | null 
     expert_id,
     phone_number,
     session_id,
-    page_name: input.page_name,
-    metric_key: input.metric_key ?? "",
     created_at,
     ended_at: input.ended_at ?? "",
     duration_minutes:
@@ -256,15 +250,8 @@ function attachUnloadListeners() {
 
   const handleUnload = () => endSession("unload");
 
-  const handleVisibilityChange = () => {
-    if (document.visibilityState === "hidden") {
-      endSession("unload");
-    }
-  };
-
   window.addEventListener("beforeunload", handleUnload);
   window.addEventListener("pagehide", handleUnload);
-  document.addEventListener("visibilitychange", handleVisibilityChange);
 
   unloadListenersAttached = true;
 }
@@ -306,7 +293,6 @@ export function endSession(reason: "logout" | "unload" | "inactivity"): void {
 
     const input: AnalyticsEventInput = {
       event_name: "session_ended",
-      page_name: "dashboard",
       created_at: startedAt,
       ended_at: endedAt,
       duration_minutes: durationMinutes,
