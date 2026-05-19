@@ -20,7 +20,7 @@ export function ExpertProfileCard({
           <img src={logo} alt="" className="h-10 w-10" />
         </div>
 
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 overflow-hidden">
           <p className="truncate text-base font-semibold text-foreground">
             {expert.name}
           </p>
@@ -30,20 +30,23 @@ export function ExpertProfileCard({
           </p>
 
           {lastUpdated && (
-            <p className="mt-1 truncate text-[11px] text-muted-foreground">
+            <p
+              className="mt-1 truncate text-[10px] leading-tight text-muted-foreground"
+              title={`Last updated: ${lastUpdated}`}
+            >
               Last updated: {lastUpdated}
             </p>
           )}
         </div>
 
         <div className="flex shrink-0 flex-col items-end gap-1">
-          <span className="rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-primary">
+          <span className="rounded-full bg-brand-soft px-2 py-1 text-[10px] font-semibold text-primary">
             Expert ID: {expert.expert_id}
           </span>
 
           <button
             onClick={onLogout}
-            className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-primary hover:bg-brand-soft"
+            className="flex items-center gap-1 rounded-lg px-1.5 py-1 text-xs font-medium text-primary hover:bg-brand-soft"
           >
             <LogOut className="h-4 w-4" />
             Logout
