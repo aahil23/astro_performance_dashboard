@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AppHeader } from "@/components/dashboard/AppHeader";
 import { ExpertProfileCard } from "@/components/dashboard/ExpertProfileCard";
 import { StatusLegend } from "@/components/dashboard/StatusLegend";
@@ -21,7 +21,9 @@ import { session } from "@/lib/session";
 import {
   clearSession,
   endSession,
+  hasLoggedSessionStarted,
   logAnalyticsEvent,
+  markSessionStartedLogged,
   startSession,
 } from "@/services/analytics";
 
@@ -130,7 +132,6 @@ function buildSessionStartedMetadata(data: DashboardResponse) {
 
 function DashboardPage() {
   const navigate = useNavigate();
-  const sessionStartedLoggedRef = useRef(false);
 
   const [data, setData] = useState<DashboardResponse | null>(() =>
     dashboardStore.get(),
@@ -141,7 +142,7 @@ function DashboardPage() {
   }, [data, navigate]);
 
   useEffect(() => {
-    if (!data || sessionStartedLoggedRef.current) return;
+    if (!data || hasLoggedSessionStarted()) return;
 
     const sessionId = startSession({
       expert_id: String(data.expert.expert_id),
@@ -156,7 +157,7 @@ function DashboardPage() {
       metadata: buildSessionStartedMetadata(data),
     });
 
-    sessionStartedLoggedRef.current = true;
+    markSessionStartedLogged();
   }, [data]);
 
   const logout = () => {
