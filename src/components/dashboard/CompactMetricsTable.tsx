@@ -4,8 +4,6 @@ import {
   formatPeriodLabel,
   getMetricTitle,
 } from "@/services/dashboardApi";
-import { useRef } from "react";
-import { useMetricViewLogger } from "@/hooks/useMetricViewLogger";
 
 interface Props {
   metrics: ApiMetric[];
@@ -56,24 +54,10 @@ function CompactMetricRow({
   metric: ApiMetric;
   isLast: boolean;
 }) {
-  const ref = useRef<HTMLDivElement | null>(null);
   const title = getMetricTitle(metric.metric_key);
-  useMetricViewLogger(ref, {
-    metric_key: metric.metric_key,
-    metadata: {
-      metric_title: title,
-      score: metric.score,
-      unit: metric.unit,
-      rank: metric.rank,
-      status: metric.status,
-      period_label: metric.period_label,
-      benchmark_bands: metric.benchmark_bands,
-    },
-  });
 
   return (
     <div
-      ref={ref}
       className={`grid grid-cols-[1fr_auto_auto] items-center gap-4 px-4 py-2.5 ${
         !isLast ? "border-b border-border/60" : ""
       }`}

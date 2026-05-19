@@ -5,8 +5,6 @@ import {
   getStatusColor,
 } from "@/services/dashboardApi";
 import { SegmentedBenchmarkBar } from "./SegmentedBenchmarkBar";
-import { useRef } from "react";
-import { useMetricViewLogger } from "@/hooks/useMetricViewLogger";
 
 interface Props {
   title: string;
@@ -40,27 +38,6 @@ export function UtilisationMetricCard({
     ?.replaceAll("_", " ")
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
-  const cardRef = useRef<HTMLDivElement | null>(null);
-  useMetricViewLogger(cardRef, {
-    metric_key: utilisationMetric?.metric_key ?? "",
-    metadata: {
-      metric_title: title,
-      score: utilisationMetric?.score,
-      unit: utilisationMetric?.unit,
-      rank: utilisationMetric?.rank,
-      status: utilisationMetric?.status,
-      period_label: utilisationMetric?.period_label,
-      benchmark_bands: utilisationMetric?.benchmark_bands,
-      busy_metric_key: busyMetric.metric_key,
-      busy_score: busyMetric.score,
-      busy_unit: busyMetric.unit,
-      online_metric_key: onlineMetric.metric_key,
-      online_score: onlineMetric.score,
-      online_unit: onlineMetric.unit,
-    },
-    enabled: Boolean(utilisationMetric?.metric_key),
-  });
-
   const busyFillPct = hasOnline
     ? Math.min(100, Math.max(0, (busyScore / onlineScore) * 100))
     : 0;
@@ -78,7 +55,6 @@ export function UtilisationMetricCard({
 
   return (
     <div
-      ref={cardRef}
       className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm"
     >
       <div className="mb-1 flex items-start justify-between gap-3">
