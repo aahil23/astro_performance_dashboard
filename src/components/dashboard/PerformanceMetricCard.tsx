@@ -7,30 +7,14 @@ import {
   getStatusColor,
 } from "@/services/dashboardApi";
 import { SegmentedBenchmarkBar } from "./SegmentedBenchmarkBar";
-import { useRef } from "react";
-import { useMetricViewLogger } from "@/hooks/useMetricViewLogger";
 
 export function PerformanceMetricCard({ metric }: { metric: ApiMetric }) {
   const title = getMetricTitle(metric.metric_key);
   const description = getMetricDescription(metric.metric_key);
   const formattedPeriodLabel = formatPeriodLabel(metric.period_label);
-  const ref = useRef<HTMLDivElement | null>(null);
-  useMetricViewLogger(ref, {
-    metric_key: metric.metric_key,
-    metadata: {
-      metric_title: title,
-      score: metric.score,
-      unit: metric.unit,
-      rank: metric.rank,
-      status: metric.status,
-      period_label: metric.period_label,
-      benchmark_bands: metric.benchmark_bands,
-    },
-  });
 
   return (
     <div
-      ref={ref}
       className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm"
     >
       <div className="mb-1 flex items-start justify-between gap-3">

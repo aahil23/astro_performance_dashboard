@@ -1,14 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppHeader } from "@/components/dashboard/AppHeader";
 import { cn } from "@/lib/utils";
-import { usePageAnalytics } from "@/hooks/usePageAnalytics";
 
 export const Route = createFileRoute("/impact")({
   component: ImpactPage,
 });
 
 function ImpactPage() {
-  usePageAnalytics("impact_of_score");
   return (
     <div className="min-h-screen">
       <AppHeader
