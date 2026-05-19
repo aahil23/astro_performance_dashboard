@@ -3,6 +3,9 @@ import { DASHBOARD_API_URL } from "./dashboardApi";
 const SESSION_KEY = "astrolokal_analytics_session";
 const SESSION_META_KEY = "astrolokal_analytics_session_meta";
 const SESSION_ENDED_FLAG = "astrolokal_analytics_session_ended";
+const SESSION_STARTED_LOGGED_KEY =
+  "astrolokal_analytics_session_started_logged";
+
 const INACTIVITY_MS = 10 * 60 * 1000;
 
 const ANALYTICS_URL = `${DASHBOARD_API_URL}?action=logAnalyticsEvent`;
@@ -109,10 +112,31 @@ export function getOrCreateSessionId(): string {
 
     sessionStorage.setItem(SESSION_KEY, id);
     sessionStorage.removeItem(SESSION_ENDED_FLAG);
+    sessionStorage.removeItem(SESSION_STARTED_LOGGED_KEY);
 
     return id;
   } catch {
     return newSessionId();
+  }
+}
+
+export function hasLoggedSessionStarted(): boolean {
+  if (typeof window === "undefined") return false;
+
+  try {
+    return sessionStorage.getItem(SESSION_STARTED_LOGGED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function markSessionStartedLogged() {
+  if (typeof window === "undefined") return;
+
+  try {
+    sessionStorage.setItem(SESSION_STARTED_LOGGED_KEY, "1");
+  } catch {
+    /* ignore */
   }
 }
 
@@ -123,6 +147,7 @@ export function clearSession() {
     sessionStorage.removeItem(SESSION_KEY);
     sessionStorage.removeItem(SESSION_META_KEY);
     sessionStorage.removeItem(SESSION_ENDED_FLAG);
+    sessionStorage.removeItem(SESSION_STARTED_LOGGED_KEY);
   } catch {
     /* ignore */
   }
