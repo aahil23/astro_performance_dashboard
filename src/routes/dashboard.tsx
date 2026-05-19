@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppHeader } from "@/components/dashboard/AppHeader";
 import { ExpertProfileCard } from "@/components/dashboard/ExpertProfileCard";
 import { StatusLegend } from "@/components/dashboard/StatusLegend";
@@ -18,8 +18,12 @@ import {
 } from "@/services/dashboardApi";
 import { dashboardStore } from "@/lib/dashboard-store";
 import { session } from "@/lib/session";
-import { usePageAnalytics } from "@/hooks/usePageAnalytics";
-import { clearSession, endSession } from "@/services/analytics";
+import {
+  clearSession,
+  endSession,
+  logAnalyticsEvent,
+  startSession,
+} from "@/services/analytics";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
@@ -33,6 +37,16 @@ const COMPACT_SECTIONS = new Set<SectionKey>(["earnings_overview"]);
 const SCORE_LABELS: Partial<Record<SectionKey, string>> = {
   earnings_overview: "Earnings",
 };
+
+const ANALYTICS_METRIC_KEYS = [
+  "d0_ttpu",
+  "d14_ttpu",
+  "earnings_l7",
+  "earnings_l14",
+  "earnings_l30",
+  "chat_utilisation_l7",
+  "audio_utilisation_l7",
+];
 
 const getMetricPriority = (key: string) => {
   const priorityMap: Record<string, number> = {
@@ -72,9 +86,52 @@ const sortMetrics = (metrics: ApiMetric[]) =>
     (a, b) => getMetricPriority(a.metric_key) - getMetricPriority(b.metric_key),
   );
 
+function buildMetricSnapshot(data: DashboardResponse) {
+  const allMetrics = Object.values(data.metrics_by_section).flat();
+  const byKey = new Map(allMetrics.map((m) => [m.metric_key, m]));
+
+  return ANALYTICS_METRIC_KEYS.reduce<Record<string, unknown>>((acc, key) => {
+    const metric = byKey.get(key);
+
+    acc[key] = metric
+      ? {
+          score: metric.score,
+          rank: metric.rank,
+        }
+      : null;
+
+    return acc;
+  }, {});
+}
+
+function buildWeeklyFunnelAverages(data: DashboardResponse) {
+  const trends = data.weekly_funnel_trends;
+
+  if (!trends?.funnels) return null;
+
+  const averages: Record<string, number | null> = {};
+
+  trends.funnels.forEach((funnel) => {
+    funnel.metrics.forEach((metric) => {
+      averages[`${metric.metric_key}_avg`] = metric.weekly_average ?? null;
+    });
+  });
+
+  return averages;
+}
+
+function buildSessionStartedMetadata(data: DashboardResponse) {
+  return {
+    expert_name: data.expert.name,
+    selected_metrics: buildMetricSnapshot(data),
+    weekly_funnel_averages: buildWeeklyFunnelAverages(data),
+  };
+}
+
 function DashboardPage() {
   const navigate = useNavigate();
-  usePageAnalytics("dashboard");
+  const sessionStartedLoggedRef = useRef(false);
+
   const [data, setData] = useState<DashboardResponse | null>(() =>
     dashboardStore.get(),
   );
@@ -82,6 +139,25 @@ function DashboardPage() {
   useEffect(() => {
     if (!data) navigate({ to: "/" });
   }, [data, navigate]);
+
+  useEffect(() => {
+    if (!data || sessionStartedLoggedRef.current) return;
+
+    const sessionId = startSession({
+      expert_id: String(data.expert.expert_id),
+      phone_number: String(data.expert.phone_number),
+    });
+
+    void logAnalyticsEvent({
+      event_name: "session_started",
+      session_id: sessionId,
+      expert_id: String(data.expert.expert_id),
+      phone_number: String(data.expert.phone_number),
+      metadata: buildSessionStartedMetadata(data),
+    });
+
+    sessionStartedLoggedRef.current = true;
+  }, [data]);
 
   const logout = () => {
     endSession("logout");
@@ -154,6 +230,7 @@ function DashboardSections({ data }: { data: DashboardResponse }) {
                 ))
               )}
             </MetricSection>
+
             {key === "earnings_overview" && data.weekly_funnel_trends && (
               <WeeklyFunnelTrends data={data.weekly_funnel_trends} />
             )}
