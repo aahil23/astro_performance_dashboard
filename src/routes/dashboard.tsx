@@ -162,7 +162,6 @@ function DashboardPage() {
 
   const logout = () => {
     endSession("logout");
-    clearSession();
     dashboardStore.clear();
     session.logout();
     setData(null);
