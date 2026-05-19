@@ -273,7 +273,9 @@ function attachActivityListeners() {
 function attachUnloadListeners() {
   if (typeof window === "undefined" || unloadListenersAttached) return;
 
-  const handleUnload = () => endSession("unload");
+  const handleUnload = () => {
+    endSession("unload");
+  };
 
   window.addEventListener("beforeunload", handleUnload);
   window.addEventListener("pagehide", handleUnload);
@@ -297,7 +299,9 @@ export function startSession(meta: SessionMeta): string {
   return sid;
 }
 
-export function endSession(reason: "logout" | "unload" | "inactivity"): void {
+export function endSession(
+  reason: "logout" | "unload" | "inactivity",
+): void {
   if (typeof window === "undefined") return;
 
   try {
@@ -330,8 +334,17 @@ export function endSession(reason: "logout" | "unload" | "inactivity"): void {
 
     if (reason === "unload") {
       logAnalyticsEventBeacon(input);
+
+      // Important:
+      // Refresh/tab close/browser close should end the current session.
+      // Clearing this ensures the next dashboard load creates a new session_id.
+      clearSession();
     } else {
       void logAnalyticsEvent(input);
+
+      if (reason === "logout") {
+        clearSession();
+      }
     }
 
     if (inactivityTimer) {
