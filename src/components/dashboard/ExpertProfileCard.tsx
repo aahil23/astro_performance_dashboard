@@ -43,7 +43,7 @@ export function ExpertProfileCard({
 
               {/* Update Schedule */}
               <p className="mt-0.5 text-[10px] leading-tight text-primary">
-                Updates every day at 9:00 AM & 9:00 PM daily
+                Updates at 9:00 AM & 9:00 PM daily
               </p>
             </>
           )}
