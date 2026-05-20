@@ -47,19 +47,19 @@ function HelpPage() {
                 "Only completed bookings within the first 14 days are counted.",
               ]}
             />
-          </>
 
-          <MetricHelp
-          title="D14/D0 Growth"
-          period="Latest 200 mature users"
-          unit="Growth Ratio"
-          description="Average increase in user talktime after the first consultation."
-          formula="D14/D0 Growth = D14 TTPU ÷ D0 TTPU"
-          notes={[
-            "Higher values indicate stronger repeat engagement after the first consultation.",
-            "Only users who completed the 14-day maturity window are included.",
-          ]}
-          /HelpSection>
+            <MetricHelp
+              title="D14/D0 Growth"
+              period="Latest 200 mature users"
+              unit="Growth Ratio"
+              description="Average increase in user talktime after the first consultation."
+              formula="D14/D0 Growth = D14 TTPU ÷ D0 TTPU"
+              notes={[
+                "Higher values indicate stronger repeat engagement after the first consultation.",
+                "Only users who completed the 14-day maturity window are included.",
+              ]}
+            />
+          </HelpSection>
 
           <HelpSection title="Profile Performance">
             <MetricHelp
@@ -234,11 +234,6 @@ function HelpPage() {
               notes={["Only completed expert earning transactions are included."]}
             />
 
-            {/* <InfoBlock
-              title="Trend %"
-              text="Trend percentage compares the latest day with the first day in the 7-day window. Formula: (Latest Day Value - First Day Value) ÷ First Day Value × 100."
-            /> */}
-
             <InfoBlock
               title="Weekly Average and Best Day"
               text="Weekly Average is the average of the 7 daily values. Best Day is the weekday with the highest value for that metric."
@@ -367,13 +362,7 @@ function MetricHelp({
   );
 }
 
-function InfoBlock({
-  title,
-  text,
-}: {
-  title: string;
-  text: string;
-}) {
+function InfoBlock({ title, text }: { title: string; text: string }) {
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
       <h4 className="text-base font-semibold text-foreground">{title}</h4>
