@@ -111,8 +111,21 @@ function ImpactPage() {
                 "Low D14 TTPU may indicate poor long-term retention.",
               ]}
             />
-          </section>
 
+          <ImpactCard
+            title="D14/D0 Growth"
+            impact="D14/D0 Growth measures how strongly user engagement grows after the first consultation."
+            positive={[
+              "Users continue spending more time after their first consultation",
+              "Stronger repeat engagement behaviour",
+              "Healthy long-term retention quality",
+            ]}
+            caution={[
+              "Low growth may indicate weak repeat engagement after the initial consultation.",
+            ]}
+            />
+            </section>
+          
           <section className="space-y-3">
             <h3 className="px-1 text-lg font-bold text-foreground">
               Availability Performance Impact
