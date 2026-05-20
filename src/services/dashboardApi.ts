@@ -99,6 +99,11 @@ export const METRIC_CONFIG: Record<
     description:
       "Average talk time per user accumulated within 14 days of the first booking for the latest 200 user–expert pairs that completed the 14-day window.",
   },
+  d14_d0_growth: {
+  title: "D14/D0 Growth",
+  description:
+    "Average growth in user talk time beyond the first booking day.",
+},
   avg_chat_rating: {
     title: "Average Chat Rating",
     description:
@@ -211,6 +216,8 @@ export function formatMetricValue(score: number, unit: string): string {
       return `${Number(score).toFixed(1)}%`;
     case "rating":
       return Number(score).toFixed(2);
+    case "ratio":
+      return `${Number(score).toFixed(2)}x`;
     case "hours":
       return `${score} hrs`;
     case "minutes":
