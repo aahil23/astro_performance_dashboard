@@ -47,7 +47,19 @@ function HelpPage() {
                 "Only completed bookings within the first 14 days are counted.",
               ]}
             />
-          </HelpSection>
+          </>
+
+          <MetricHelp
+          title="D14/D0 Growth"
+          period="Latest 200 mature users"
+          unit="Growth Ratio"
+          description="Average increase in user talktime after the first consultation."
+          formula="D14/D0 Growth = D14 TTPU ÷ D0 TTPU"
+          notes={[
+            "Higher values indicate stronger repeat engagement after the first consultation.",
+            "Only users who completed the 14-day maturity window are included.",
+          ]}
+          /HelpSection>
 
           <HelpSection title="Profile Performance">
             <MetricHelp
