@@ -19,7 +19,6 @@ import {
 import { dashboardStore } from "@/lib/dashboard-store";
 import { session } from "@/lib/session";
 import {
-  clearSession,
   endSession,
   hasLoggedSessionStarted,
   logAnalyticsEvent,
@@ -43,6 +42,7 @@ const SCORE_LABELS: Partial<Record<SectionKey, string>> = {
 const ANALYTICS_METRIC_KEYS = [
   "d0_ttpu",
   "d14_ttpu",
+  "d14_d0_growth",
   "earnings_l7",
   "earnings_l14",
   "earnings_l30",
@@ -54,30 +54,31 @@ const getMetricPriority = (key: string) => {
   const priorityMap: Record<string, number> = {
     d0_ttpu: 1,
     d14_ttpu: 2,
+    d14_d0_growth: 3,
 
-    avg_chat_rating: 3,
-    avg_audio_rating: 4,
-    avg_video_rating: 5,
+    avg_chat_rating: 4,
+    avg_audio_rating: 5,
+    avg_video_rating: 6,
 
-    chat_available_hours: 6,
-    audio_available_hours: 7,
-    video_available_hours: 8,
+    chat_available_hours: 7,
+    audio_available_hours: 8,
+    video_available_hours: 9,
 
-    chat_online_time_l7: 9,
-    chat_busy_time_l7: 10,
-    chat_utilisation_l7: 11,
+    chat_online_time_l7: 10,
+    chat_busy_time_l7: 11,
+    chat_utilisation_l7: 12,
 
-    audio_online_time_l7: 12,
-    audio_busy_time_l7: 13,
-    audio_utilisation_l7: 14,
+    audio_online_time_l7: 13,
+    audio_busy_time_l7: 14,
+    audio_utilisation_l7: 15,
 
-    video_online_time_l7: 15,
-    video_busy_time_l7: 16,
-    video_utilisation_l7: 17,
+    video_online_time_l7: 16,
+    video_busy_time_l7: 17,
+    video_utilisation_l7: 18,
 
-    earnings_l7: 18,
-    earnings_l14: 19,
-    earnings_l30: 20,
+    earnings_l7: 19,
+    earnings_l14: 20,
+    earnings_l30: 21,
   };
 
   return priorityMap[key] ?? 999;
