@@ -6,7 +6,7 @@ const SESSION_ENDED_FLAG = "astrolokal_analytics_session_ended";
 const SESSION_STARTED_LOGGED_KEY =
   "astrolokal_analytics_session_started_logged";
 
-const INACTIVITY_MS = 25 * 60 * 1000;
+const INACTIVITY_MS = 15 * 60 * 1000;
 
 const ANALYTICS_URL = `${DASHBOARD_API_URL}?action=logAnalyticsEvent`;
 
