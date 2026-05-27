@@ -23,6 +23,7 @@ import {
   hasLoggedSessionStarted,
   logAnalyticsEvent,
   markSessionStartedLogged,
+  registerInactivityLogoutHandler,
   startSession,
 } from "@/services/analytics";
 
@@ -141,6 +142,21 @@ function DashboardPage() {
   useEffect(() => {
     if (!data) navigate({ to: "/" });
   }, [data, navigate]);
+
+  useEffect(() => {
+  registerInactivityLogoutHandler(() => {
+    dashboardStore.clear();
+    session.logout();
+    setData(null);
+
+    navigate({
+      to: "/",
+      state: {
+        message: "Your session ended due to inactivity. Please login again.",
+      },
+    });
+  });
+}, [navigate]);
 
   useEffect(() => {
     if (!data || hasLoggedSessionStarted()) return;
