@@ -6,9 +6,15 @@ const SESSION_ENDED_FLAG = "astrolokal_analytics_session_ended";
 const SESSION_STARTED_LOGGED_KEY =
   "astrolokal_analytics_session_started_logged";
 
-const INACTIVITY_MS = 10 * 60 * 1000;
+const INACTIVITY_MS = 25 * 60 * 1000;
 
 const ANALYTICS_URL = `${DASHBOARD_API_URL}?action=logAnalyticsEvent`;
+
+let inactivityLogoutHandler: (() => void) | null = null;
+
+export function registerInactivityLogoutHandler(handler: () => void) {
+  inactivityLogoutHandler = handler;
+}
 
 export interface AnalyticsEventPayload {
   event_id: string;
@@ -47,9 +53,7 @@ function isDev(): boolean {
 }
 
 function warn(...args: unknown[]) {
-  if (isDev()) {
-    console.warn("[analytics]", ...args);
-  }
+  if (isDev()) console.warn("[analytics]", ...args);
 }
 
 export function generateEventId(): string {
@@ -103,16 +107,16 @@ export function getOrCreateSessionId(): string {
 
   try {
     const existing = sessionStorage.getItem(SESSION_KEY);
+    const ended = sessionStorage.getItem(SESSION_ENDED_FLAG) === "1";
 
-    if (existing && sessionStorage.getItem(SESSION_ENDED_FLAG) !== "1") {
-      return existing;
-    }
+    if (existing && !ended) return existing;
+
+    sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_STARTED_LOGGED_KEY);
+    sessionStorage.removeItem(SESSION_ENDED_FLAG);
 
     const id = newSessionId();
-
     sessionStorage.setItem(SESSION_KEY, id);
-    sessionStorage.removeItem(SESSION_ENDED_FLAG);
-    sessionStorage.removeItem(SESSION_STARTED_LOGGED_KEY);
 
     return id;
   } catch {
@@ -217,7 +221,6 @@ export function logAnalyticsEventBeacon(input: AnalyticsEventInput): void {
       });
 
       const ok = navigator.sendBeacon(ANALYTICS_URL, blob);
-
       if (ok) return;
     }
 
@@ -226,8 +229,6 @@ export function logAnalyticsEventBeacon(input: AnalyticsEventInput): void {
     warn("beacon failed", err);
   }
 }
-
-// -------- Session lifecycle --------
 
 let inactivityTimer: ReturnType<typeof setTimeout> | null = null;
 let sessionStartedAt: string | null = null;
@@ -249,12 +250,12 @@ function resetInactivityTimer() {
 
   inactivityTimer = setTimeout(() => {
     endSession("inactivity");
+    inactivityLogoutHandler?.();
   }, INACTIVITY_MS);
 }
 
 function onActivity() {
   if (typeof window === "undefined") return;
-
   if (sessionStorage.getItem(SESSION_ENDED_FLAG) === "1") return;
 
   resetInactivityTimer();
@@ -284,6 +285,18 @@ function attachUnloadListeners() {
 }
 
 export function startSession(meta: SessionMeta): string {
+  const existingMeta = getSessionMeta();
+
+  const expertChanged =
+    existingMeta &&
+    (existingMeta.expert_id !== meta.expert_id ||
+      existingMeta.phone_number !== meta.phone_number);
+
+  if (expertChanged) {
+    clearSession();
+    sessionStartedAt = null;
+  }
+
   setSessionMeta(meta);
 
   const sid = getOrCreateSessionId();
@@ -332,19 +345,15 @@ export function endSession(
 
     sessionStorage.setItem(SESSION_ENDED_FLAG, "1");
 
-if (reason === "unload") {
-  logAnalyticsEventBeacon(input);
+    if (reason === "unload") {
+      logAnalyticsEventBeacon(input);
+    } else {
+      void logAnalyticsEvent(input);
+    }
 
-  sessionStorage.removeItem(SESSION_KEY);
-  sessionStorage.removeItem(SESSION_ENDED_FLAG);
-  sessionStorage.removeItem(SESSION_STARTED_LOGGED_KEY);
-} else {
-  void logAnalyticsEvent(input);
-
-  if (reason === "logout") {
-    clearSession();
-  }
-}
+    if (reason === "logout") {
+      clearSession();
+    }
 
     if (inactivityTimer) {
       clearTimeout(inactivityTimer);
