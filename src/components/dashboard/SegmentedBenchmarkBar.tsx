@@ -32,7 +32,7 @@ const formatLabel = (value: number) => {
 const getScorePosition = (
   score: number,
   bands: BenchmarkBands,
-  hasEliteBand: boolean
+  hasEliteBand: boolean,
 ) => {
   const p0 = Number(bands.p0);
   const p75 = Number(bands.p75);
@@ -82,65 +82,35 @@ export function SegmentedBenchmarkBar({ bands, score, status }: Props) {
 
   const visualBands = hasEliteBand
     ? [
-        {
-          key: "weak",
-          left: 0,
-          width: 40,
-          color: "var(--status-critical)",
-        },
-        {
-          key: "average",
-          left: 40,
-          width: 30,
-          color: "var(--status-stable)",
-        },
-        {
-          key: "strong",
-          left: 70,
-          width: 20,
-          color: "var(--status-strong)",
-        },
-        {
-          key: "elite",
-          left: 90,
-          width: 10,
-          color: "var(--status-elite)",
-        },
+        { key: "weak", left: 0, width: 40, color: "var(--status-critical)" },
+        { key: "average", left: 40, width: 30, color: "var(--status-stable)" },
+        { key: "strong", left: 70, width: 20, color: "var(--status-strong)" },
+        { key: "elite", left: 90, width: 10, color: "var(--status-elite)" },
       ]
     : [
-        {
-          key: "weak",
-          left: 0,
-          width: 40,
-          color: "var(--status-critical)",
-        },
-        {
-          key: "average",
-          left: 40,
-          width: 30,
-          color: "var(--status-stable)",
-        },
-        {
-          key: "strong",
-          left: 70,
-          width: 30,
-          color: "var(--status-strong)",
-        },
+        { key: "weak", left: 0, width: 40, color: "var(--status-critical)" },
+        { key: "average", left: 40, width: 30, color: "var(--status-stable)" },
+        { key: "strong", left: 70, width: 30, color: "var(--status-strong)" },
       ];
 
-const thresholds = hasEliteBand
-  ? [
-      { key: "p75", value: Number(bands.p75), position: 40 },
-      { key: "p90", value: Number(bands.p90), position: 70 },
-      { key: "p95", value: Number(bands.p95), position: 90 },
-    ]
-  : [
-      { key: "p75", value: Number(bands.p75), position: 40 },
-      { key: "p90", value: Number(bands.p90), position: 70 },
-      { key: "p95", value: Number(bands.p95), position: 100 },
-    ];
+  const thresholds = hasEliteBand
+    ? [
+        { key: "p75", value: Number(bands.p75), position: 40 },
+        { key: "p90", value: Number(bands.p90), position: 70 },
+        { key: "p95", value: Number(bands.p95), position: 90 },
+      ]
+    : [
+        { key: "p75", value: Number(bands.p75), position: 40 },
+        { key: "p90", value: Number(bands.p90), position: 70 },
+        { key: "p95", value: Number(bands.p95), position: 100 },
+      ];
 
-  const fillPct = getScorePosition(Number(score), bands, hasEliteBand);
+  const numericScore = Number(score);
+
+  const rawFillPct = getScorePosition(numericScore, bands, hasEliteBand);
+
+  const fillPct = numericScore > 0 ? Math.max(4, rawFillPct) : 0;
+
   const fillColor = getSafeStatusColor(status);
 
   return (
@@ -173,7 +143,7 @@ const thresholds = hasEliteBand
           return (
             <span
               key={t.key}
-              className="absolute tabular-nums whitespace-nowrap"
+              className="absolute whitespace-nowrap tabular-nums"
               style={{
                 left: `${t.position}%`,
                 transform,
