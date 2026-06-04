@@ -195,15 +195,19 @@ function DashboardPage() {
     .sort()
     .reverse()[0];
   
-  const lastUpdated = rawLastUpdated
-    ? new Date(rawLastUpdated).toLocaleString("en-IN", {
+const lastUpdated = rawLastUpdated
+  ? new Date(rawLastUpdated)
+      .toLocaleString("en-IN", {
         day: "2-digit",
         month: "short",
         hour: "numeric",
         minute: "2-digit",
         hour12: true,
       })
-    : undefined;
+      .replace(",", " •")
+      .replace("am", "AM")
+      .replace("pm", "PM")
+  : undefined;
 
   return (
     <div className="min-h-screen">
