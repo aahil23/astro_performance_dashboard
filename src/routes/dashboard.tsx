@@ -189,11 +189,21 @@ function DashboardPage() {
 
   const allMetrics = Object.values(data.metrics_by_section).flat();
 
-  const lastUpdated = allMetrics
+  const rawLastUpdated = allMetrics
     .map((metric) => metric.updated_at)
     .filter(Boolean)
     .sort()
     .reverse()[0];
+  
+  const lastUpdated = rawLastUpdated
+    ? new Date(rawLastUpdated).toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+    : undefined;
 
   return (
     <div className="min-h-screen">
