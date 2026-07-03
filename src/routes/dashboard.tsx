@@ -98,6 +98,7 @@ const sortMetrics = (metrics: ApiMetric[]) =>
 
 function formatDashboardDate(timestampMs: number): string {
   return new Intl.DateTimeFormat("en-IN", {
+      timeZone: "UTC",
       day: "2-digit",
       month: "short",
       hour: "numeric",
