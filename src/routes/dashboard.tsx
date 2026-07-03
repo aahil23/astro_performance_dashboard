@@ -27,12 +27,6 @@ import {
   startSession,
 } from "@/services/analytics";
 
-declare module "@tanstack/react-router" {
-  interface HistoryState {
-    message?: string;
-  }
-}
-
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
@@ -96,30 +90,6 @@ const sortMetrics = (metrics: ApiMetric[]) =>
     (a, b) => getMetricPriority(a.metric_key) - getMetricPriority(b.metric_key),
   );
 
-function formatDashboardDate(timestampMs: number): string {
-  return new Intl.DateTimeFormat("en-IN", {
-      timeZone: "UTC",
-      day: "2-digit",
-      month: "short",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    })
-    .format(timestampMs)
-    .replace(",", " •")
-    .replace("am", "AM")
-    .replace("pm", "PM");
-}
-
-function getLastUpdated(metrics: ApiMetric[]): string | undefined {
-  const timestamps = metrics
-    .map((metric) => metric.updated_at_timestamp_ms)
-    .filter((timestamp): timestamp is number => typeof timestamp === "number")
-    .sort((a, b) => b - a);
-
-  return timestamps[0] ? formatDashboardDate(timestamps[0]) : undefined;
-}
-
 function buildMetricSnapshot(data: DashboardResponse) {
   const allMetrics = Object.values(data.metrics_by_section).flat();
   const byKey = new Map(allMetrics.map((m) => [m.metric_key, m]));
@@ -174,19 +144,19 @@ function DashboardPage() {
   }, [data, navigate]);
 
   useEffect(() => {
-    registerInactivityLogoutHandler(() => {
-      dashboardStore.clear();
-      session.logout();
-      setData(null);
+  registerInactivityLogoutHandler(() => {
+    dashboardStore.clear();
+    session.logout();
+    setData(null);
 
-      navigate({
-        to: "/",
-        state: {
-          message: "Your session ended due to inactivity. Please login again.",
-        },
-      });
+    navigate({
+      to: "/",
+      state: {
+        message: "Your session ended due to inactivity. Please login again.",
+      },
     });
-  }, [navigate]);
+  });
+}, [navigate]);
 
   useEffect(() => {
     if (!data || hasLoggedSessionStarted()) return;
@@ -218,7 +188,26 @@ function DashboardPage() {
   if (!data) return null;
 
   const allMetrics = Object.values(data.metrics_by_section).flat();
-  const lastUpdated = getLastUpdated(allMetrics);
+
+  const rawLastUpdated = allMetrics
+    .map((metric) => metric.updated_at)
+    .filter(Boolean)
+    .sort()
+    .reverse()[0];
+  
+const lastUpdated = rawLastUpdated
+  ? new Date(rawLastUpdated)
+      .toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+      .replace(",", " •")
+      .replace("am", "AM")
+      .replace("pm", "PM")
+  : undefined;
 
   return (
     <div className="min-h-screen">

@@ -20,7 +20,6 @@ export interface ApiMetric {
   status: ApiStatus | null;
   benchmark_bands: BenchmarkBands | null;
   updated_at?: string;
-  updated_at_timestamp_ms?: number;
 }
 
 export interface ApiExpert {
@@ -250,123 +249,6 @@ export function formatPeriodLabel(periodLabel?: string): string {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-export function parseDashboardUpdatedAtTimestamp(
-  value?: string | null,
-): number | null {
-  if (!value) return null;
-
-  const cleaned = String(value).trim();
-  const dmy = cleaned.match(
-    /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2}|\d{4})(?:,?[\sT]+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?)?$/i,
-  );
-
-  if (dmy) {
-    const [, dd, mm, yy, hh = "0", min = "0", sec = "0", ampm] = dmy;
-    const day = Number(dd);
-    const month = Number(mm);
-    const year = yy.length === 2 ? 2000 + Number(yy) : Number(yy);
-    let hour = Number(hh);
-    const minute = Number(min);
-    const second = Number(sec);
-    const normalizedAmpm = ampm?.toUpperCase();
-
-    if (normalizedAmpm && (hour < 1 || hour > 12)) return null;
-    if (normalizedAmpm === "PM" && hour < 12) hour += 12;
-    if (normalizedAmpm === "AM" && hour === 12) hour = 0;
-
-    const isValidInput =
-      day >= 1 &&
-      day <= 31 &&
-      month >= 1 &&
-      month <= 12 &&
-      year >= 2000 &&
-      hour >= 0 &&
-      hour <= 23 &&
-      minute >= 0 &&
-      minute <= 59 &&
-      second >= 0 &&
-      second <= 59;
-
-    if (!isValidInput) return null;
-
-    const timestamp = Date.UTC(year, month - 1, day, hour, minute, second);
-    const parsed = new Date(timestamp);
-
-    const isRealDate =
-      parsed.getUTCFullYear() === year &&
-      parsed.getUTCMonth() === month - 1 &&
-      parsed.getUTCDate() === day &&
-      parsed.getUTCHours() === hour &&
-      parsed.getUTCMinutes() === minute &&
-      parsed.getUTCSeconds() === second;
-
-    return isRealDate ? timestamp : null;
-  }
-
-  const isoDateOnly = cleaned.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (isoDateOnly) {
-    const year = Number(isoDateOnly[1]);
-    const month = Number(isoDateOnly[2]);
-    const day = Number(isoDateOnly[3]);
-    const timestamp = Date.UTC(year, month - 1, day);
-    const parsed = new Date(timestamp);
-
-    return parsed.getUTCFullYear() === year &&
-      parsed.getUTCMonth() === month - 1 &&
-      parsed.getUTCDate() === day
-      ? timestamp
-      : null;
-  }
-
-  if (/^\d{4}-\d{2}-\d{2}T/.test(cleaned)) {
-    const timestamp = Date.parse(cleaned);
-    return Number.isNaN(timestamp) ? null : timestamp;
-  }
-
-  return null;
-}
-
-function normalizeMetricUpdatedAt(metric: ApiMetric): ApiMetric {
-  if (
-    typeof metric.updated_at_timestamp_ms === "number" &&
-    Number.isFinite(metric.updated_at_timestamp_ms)
-  ) {
-    return metric;
-  }
-
-  const timestamp = parseDashboardUpdatedAtTimestamp(metric.updated_at);
-  return timestamp === null
-    ? metric
-    : { ...metric, updated_at_timestamp_ms: timestamp };
-}
-
-export function normalizeDashboardResponse(
-  data: DashboardResponse,
-): DashboardResponse {
-  const metricsBySection = data.metrics_by_section ?? {};
-
-  return {
-    ...data,
-    metrics_by_section: {
-      critical_performance:
-        metricsBySection.critical_performance?.map(normalizeMetricUpdatedAt) ??
-        [],
-      availability_performance:
-        metricsBySection.availability_performance?.map(
-          normalizeMetricUpdatedAt,
-        ) ?? [],
-      profile_performance:
-        metricsBySection.profile_performance?.map(normalizeMetricUpdatedAt) ??
-        [],
-      earnings_overview:
-        metricsBySection.earnings_overview?.map(normalizeMetricUpdatedAt) ?? [],
-      engagement_overview:
-        metricsBySection.engagement_overview?.map(normalizeMetricUpdatedAt) ??
-        [],
-    },
-  };
-}
-
 export class DashboardApiError extends Error {
   constructor(
     message: string,
@@ -405,7 +287,7 @@ export async function fetchDashboardByPhone(
     );
   }
 
-  if (json.success) return normalizeDashboardResponse(json as DashboardResponse);
+  if (json.success) return json as DashboardResponse;
 
   const msg = (json.message || "").toLowerCase();
 
