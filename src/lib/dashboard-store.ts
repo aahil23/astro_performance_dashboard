@@ -1,14 +1,17 @@
-import type { DashboardResponse } from "@/services/dashboardApi";
+import {
+  normalizeDashboardResponse,
+  type DashboardResponse,
+} from "@/services/dashboardApi";
 
 const KEY = "astrolokal_dashboard";
 let cached: DashboardResponse | null = null;
 
 export const dashboardStore = {
   set(d: DashboardResponse) {
-    cached = d;
+    cached = normalizeDashboardResponse(d);
     if (typeof window !== "undefined") {
       try {
-        sessionStorage.setItem(KEY, JSON.stringify(d));
+        sessionStorage.setItem(KEY, JSON.stringify(cached));
       } catch {
         /* ignore */
       }
@@ -20,7 +23,8 @@ export const dashboardStore = {
       const s = sessionStorage.getItem(KEY);
       if (s) {
         try {
-          cached = JSON.parse(s) as DashboardResponse;
+          cached = normalizeDashboardResponse(JSON.parse(s) as DashboardResponse);
+          sessionStorage.setItem(KEY, JSON.stringify(cached));
         } catch {
           cached = null;
         }
