@@ -90,6 +90,105 @@ const sortMetrics = (metrics: ApiMetric[]) =>
     (a, b) => getMetricPriority(a.metric_key) - getMetricPriority(b.metric_key),
   );
 
+function formatDateForDashboard(date: Date): string {
+  return date
+    .toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+    .replace(",", " •")
+    .replace("am", "AM")
+    .replace("pm", "PM");
+}
+
+function parseDashboardDate(value?: string | null): Date | null {
+  if (!value) return null;
+
+  const trimmedValue = String(value).trim();
+  if (!trimmedValue) return null;
+
+  /**
+   * Handles:
+   * 03/07/26 9:53
+   * 03/07/2026 09:53
+   * 03/07/26 9:53 AM
+   * 03/07/2026 09:53 PM
+   */
+  const ddmmyyyyRegex =
+    /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})(?:\s+|,?\s+)(\d{1,2}):(\d{2})(?:\s*(AM|PM|am|pm))?$/;
+
+  const ddmmyyyyMatch = trimmedValue.match(ddmmyyyyRegex);
+
+  if (ddmmyyyyMatch) {
+    const [, dayRaw, monthRaw, yearRaw, hourRaw, minuteRaw, meridiemRaw] =
+      ddmmyyyyMatch;
+
+    const day = Number(dayRaw);
+    const month = Number(monthRaw);
+    const year =
+      yearRaw.length === 2 ? 2000 + Number(yearRaw) : Number(yearRaw);
+    let hour = Number(hourRaw);
+    const minute = Number(minuteRaw);
+
+    if (meridiemRaw) {
+      const meridiem = meridiemRaw.toUpperCase();
+
+      if (meridiem === "PM" && hour < 12) hour += 12;
+      if (meridiem === "AM" && hour === 12) hour = 0;
+    }
+
+    const isValidInput =
+      day >= 1 &&
+      day <= 31 &&
+      month >= 1 &&
+      month <= 12 &&
+      year >= 2000 &&
+      hour >= 0 &&
+      hour <= 23 &&
+      minute >= 0 &&
+      minute <= 59;
+
+    if (isValidInput) {
+      const date = new Date(year, month - 1, day, hour, minute, 0, 0);
+
+      const isRealDate =
+        date.getFullYear() === year &&
+        date.getMonth() === month - 1 &&
+        date.getDate() === day &&
+        date.getHours() === hour &&
+        date.getMinutes() === minute;
+
+      if (isRealDate) return date;
+    }
+  }
+
+  /**
+   * Safe fallback for ISO formats:
+   * 2026-07-03T09:53:00+05:30
+   * 2026-07-03T04:23:00Z
+   */
+  const fallbackDate = new Date(trimmedValue);
+
+  if (!Number.isNaN(fallbackDate.getTime())) {
+    return fallbackDate;
+  }
+
+  return null;
+}
+
+function formatLastUpdated(value?: string | null): string | undefined {
+  const parsedDate = parseDashboardDate(value);
+
+  if (!parsedDate) {
+    return value ? String(value).trim() : undefined;
+  }
+
+  return formatDateForDashboard(parsedDate);
+}
+
 function buildMetricSnapshot(data: DashboardResponse) {
   const allMetrics = Object.values(data.metrics_by_section).flat();
   const byKey = new Map(allMetrics.map((m) => [m.metric_key, m]));
@@ -144,19 +243,19 @@ function DashboardPage() {
   }, [data, navigate]);
 
   useEffect(() => {
-  registerInactivityLogoutHandler(() => {
-    dashboardStore.clear();
-    session.logout();
-    setData(null);
+    registerInactivityLogoutHandler(() => {
+      dashboardStore.clear();
+      session.logout();
+      setData(null);
 
-    navigate({
-      to: "/",
-      state: {
-        message: "Your session ended due to inactivity. Please login again.",
-      },
+      navigate({
+        to: "/",
+        state: {
+          message: "Your session ended due to inactivity. Please login again.",
+        },
+      });
     });
-  });
-}, [navigate]);
+  }, [navigate]);
 
   useEffect(() => {
     if (!data || hasLoggedSessionStarted()) return;
@@ -189,25 +288,22 @@ function DashboardPage() {
 
   const allMetrics = Object.values(data.metrics_by_section).flat();
 
-  const rawLastUpdated = allMetrics
-    .map((metric) => metric.updated_at)
-    .filter(Boolean)
-    .sort()
-    .reverse()[0];
-  
-const lastUpdated = rawLastUpdated
-  ? new Date(rawLastUpdated)
-      .toLocaleString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      })
-      .replace(",", " •")
-      .replace("am", "AM")
-      .replace("pm", "PM")
-  : undefined;
+  const rawLastUpdated =
+    allMetrics
+      .map((metric) => metric.updated_at)
+      .filter((value): value is string => Boolean(value))
+      .sort((a, b) => {
+        const dateA = parseDashboardDate(a);
+        const dateB = parseDashboardDate(b);
+
+        if (dateA && dateB) return dateB.getTime() - dateA.getTime();
+        if (dateA) return -1;
+        if (dateB) return 1;
+
+        return String(b).localeCompare(String(a));
+      })[0] ?? null;
+
+  const lastUpdated = formatLastUpdated(rawLastUpdated);
 
   return (
     <div className="min-h-screen">
