@@ -96,96 +96,28 @@ const sortMetrics = (metrics: ApiMetric[]) =>
     (a, b) => getMetricPriority(a.metric_key) - getMetricPriority(b.metric_key),
   );
 
-function parseDDMMDate(value: string): Date | null {
-  const cleaned = String(value).trim();
-
-  const match = cleaned.match(
-    /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2}|\d{4})(?:[\sT]+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?)?$/i,
-  );
-
-  if (!match) return null;
-
-  const [, dd, mm, yy, hh = "0", min = "0", sec = "0", ampm] = match;
-
-  const day = Number(dd);
-  const month = Number(mm);
-  const year = yy.length === 2 ? 2000 + Number(yy) : Number(yy);
-
-  let hour = Number(hh);
-  const minute = Number(min);
-  const second = Number(sec);
-
-  if (ampm?.toUpperCase() === "PM" && hour < 12) hour += 12;
-  if (ampm?.toUpperCase() === "AM" && hour === 12) hour = 0;
-
-  const isValidInput =
-    day >= 1 &&
-    day <= 31 &&
-    month >= 1 &&
-    month <= 12 &&
-    year >= 2000 &&
-    hour >= 0 &&
-    hour <= 23 &&
-    minute >= 0 &&
-    minute <= 59 &&
-    second >= 0 &&
-    second <= 59;
-
-  if (!isValidInput) return null;
-
-  const date = new Date(year, month - 1, day, hour, minute, second);
-
-  const isRealDate =
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day &&
-    date.getHours() === hour &&
-    date.getMinutes() === minute &&
-    date.getSeconds() === second;
-
-  return isRealDate ? date : null;
-}
-
-function parseUpdatedAt(value?: string | null): Date | null {
-  if (!value) return null;
-
-  const cleaned = String(value).trim();
-
-  const ddmmDate = parseDDMMDate(cleaned);
-  if (ddmmDate) return ddmmDate;
-
-  // Only fall back to native Date for unambiguous ISO 8601 strings
-  // (YYYY-MM-DD or YYYY-MM-DDTHH:mm...). Never for slash-separated
-  // strings, which the browser parses as MM/DD/YY.
-  if (/^\d{4}-\d{2}-\d{2}([T\s]|$)/.test(cleaned)) {
-    const isoDate = new Date(cleaned);
-    if (!Number.isNaN(isoDate.getTime())) return isoDate;
-  }
-
-  return null;
-}
-
-function formatDashboardDate(date: Date): string {
-  return date
-    .toLocaleString("en-IN", {
+function formatDashboardDate(timestampMs: number): string {
+  return new Intl.DateTimeFormat("en-IN", {
+      timeZone: "UTC",
       day: "2-digit",
       month: "short",
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     })
+    .format(timestampMs)
     .replace(",", " •")
     .replace("am", "AM")
     .replace("pm", "PM");
 }
 
 function getLastUpdated(metrics: ApiMetric[]): string | undefined {
-  const parsedDates = metrics
-    .map((metric) => parseUpdatedAt(metric.updated_at))
-    .filter((date): date is Date => Boolean(date))
-    .sort((a, b) => b.getTime() - a.getTime());
+  const timestamps = metrics
+    .map((metric) => metric.updated_at_timestamp_ms)
+    .filter((timestamp): timestamp is number => typeof timestamp === "number")
+    .sort((a, b) => b - a);
 
-  return parsedDates[0] ? formatDashboardDate(parsedDates[0]) : undefined;
+  return timestamps[0] ? formatDashboardDate(timestamps[0]) : undefined;
 }
 
 function buildMetricSnapshot(data: DashboardResponse) {
