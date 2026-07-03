@@ -90,7 +90,69 @@ const sortMetrics = (metrics: ApiMetric[]) =>
     (a, b) => getMetricPriority(a.metric_key) - getMetricPriority(b.metric_key),
   );
 
-function formatDateForDashboard(date: Date): string {
+function parseDDMMDate(value: string): Date | null {
+  const cleaned = String(value).trim();
+
+  const match = cleaned.match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i,
+  );
+
+  if (!match) return null;
+
+  const [, dd, mm, yy, hh, min, sec = "0", ampm] = match;
+
+  const day = Number(dd);
+  const month = Number(mm);
+  const year = yy.length === 2 ? 2000 + Number(yy) : Number(yy);
+
+  let hour = Number(hh);
+  const minute = Number(min);
+  const second = Number(sec);
+
+  if (ampm?.toUpperCase() === "PM" && hour < 12) hour += 12;
+  if (ampm?.toUpperCase() === "AM" && hour === 12) hour = 0;
+
+  const isValidInput =
+    day >= 1 &&
+    day <= 31 &&
+    month >= 1 &&
+    month <= 12 &&
+    year >= 2000 &&
+    hour >= 0 &&
+    hour <= 23 &&
+    minute >= 0 &&
+    minute <= 59 &&
+    second >= 0 &&
+    second <= 59;
+
+  if (!isValidInput) return null;
+
+  const date = new Date(year, month - 1, day, hour, minute, second);
+
+  const isRealDate =
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day &&
+    date.getHours() === hour &&
+    date.getMinutes() === minute &&
+    date.getSeconds() === second;
+
+  return isRealDate ? date : null;
+}
+
+function parseUpdatedAt(value?: string | null): Date | null {
+  if (!value) return null;
+
+  const ddmmDate = parseDDMMDate(value);
+  if (ddmmDate) return ddmmDate;
+
+  const isoDate = new Date(String(value).trim());
+  if (!Number.isNaN(isoDate.getTime())) return isoDate;
+
+  return null;
+}
+
+function formatDashboardDate(date: Date): string {
   return date
     .toLocaleString("en-IN", {
       day: "2-digit",
@@ -104,89 +166,13 @@ function formatDateForDashboard(date: Date): string {
     .replace("pm", "PM");
 }
 
-function parseDashboardDate(value?: string | null): Date | null {
-  if (!value) return null;
+function getLastUpdated(metrics: ApiMetric[]): string | undefined {
+  const parsedDates = metrics
+    .map((metric) => parseUpdatedAt(metric.updated_at))
+    .filter((date): date is Date => Boolean(date))
+    .sort((a, b) => b.getTime() - a.getTime());
 
-  const trimmedValue = String(value).trim();
-  if (!trimmedValue) return null;
-
-  /**
-   * Handles:
-   * 03/07/26 9:53
-   * 03/07/2026 09:53
-   * 03/07/26 9:53 AM
-   * 03/07/2026 09:53 PM
-   */
-  const ddmmyyyyRegex =
-    /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})(?:\s+|,?\s+)(\d{1,2}):(\d{2})(?:\s*(AM|PM|am|pm))?$/;
-
-  const ddmmyyyyMatch = trimmedValue.match(ddmmyyyyRegex);
-
-  if (ddmmyyyyMatch) {
-    const [, dayRaw, monthRaw, yearRaw, hourRaw, minuteRaw, meridiemRaw] =
-      ddmmyyyyMatch;
-
-    const day = Number(dayRaw);
-    const month = Number(monthRaw);
-    const year =
-      yearRaw.length === 2 ? 2000 + Number(yearRaw) : Number(yearRaw);
-    let hour = Number(hourRaw);
-    const minute = Number(minuteRaw);
-
-    if (meridiemRaw) {
-      const meridiem = meridiemRaw.toUpperCase();
-
-      if (meridiem === "PM" && hour < 12) hour += 12;
-      if (meridiem === "AM" && hour === 12) hour = 0;
-    }
-
-    const isValidInput =
-      day >= 1 &&
-      day <= 31 &&
-      month >= 1 &&
-      month <= 12 &&
-      year >= 2000 &&
-      hour >= 0 &&
-      hour <= 23 &&
-      minute >= 0 &&
-      minute <= 59;
-
-    if (isValidInput) {
-      const date = new Date(year, month - 1, day, hour, minute, 0, 0);
-
-      const isRealDate =
-        date.getFullYear() === year &&
-        date.getMonth() === month - 1 &&
-        date.getDate() === day &&
-        date.getHours() === hour &&
-        date.getMinutes() === minute;
-
-      if (isRealDate) return date;
-    }
-  }
-
-  /**
-   * Safe fallback for ISO formats:
-   * 2026-07-03T09:53:00+05:30
-   * 2026-07-03T04:23:00Z
-   */
-  const fallbackDate = new Date(trimmedValue);
-
-  if (!Number.isNaN(fallbackDate.getTime())) {
-    return fallbackDate;
-  }
-
-  return null;
-}
-
-function formatLastUpdated(value?: string | null): string | undefined {
-  const parsedDate = parseDashboardDate(value);
-
-  if (!parsedDate) {
-    return value ? String(value).trim() : undefined;
-  }
-
-  return formatDateForDashboard(parsedDate);
+  return parsedDates[0] ? formatDashboardDate(parsedDates[0]) : undefined;
 }
 
 function buildMetricSnapshot(data: DashboardResponse) {
@@ -287,23 +273,7 @@ function DashboardPage() {
   if (!data) return null;
 
   const allMetrics = Object.values(data.metrics_by_section).flat();
-
-  const rawLastUpdated =
-    allMetrics
-      .map((metric) => metric.updated_at)
-      .filter((value): value is string => Boolean(value))
-      .sort((a, b) => {
-        const dateA = parseDashboardDate(a);
-        const dateB = parseDashboardDate(b);
-
-        if (dateA && dateB) return dateB.getTime() - dateA.getTime();
-        if (dateA) return -1;
-        if (dateB) return 1;
-
-        return String(b).localeCompare(String(a));
-      })[0] ?? null;
-
-  const lastUpdated = formatLastUpdated(rawLastUpdated);
+  const lastUpdated = getLastUpdated(allMetrics);
 
   return (
     <div className="min-h-screen">
