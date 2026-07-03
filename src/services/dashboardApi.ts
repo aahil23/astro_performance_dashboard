@@ -343,29 +343,26 @@ function normalizeMetricUpdatedAt(metric: ApiMetric): ApiMetric {
 export function normalizeDashboardResponse(
   data: DashboardResponse,
 ): DashboardResponse {
+  const metricsBySection = data.metrics_by_section ?? {};
+
   return {
     ...data,
     metrics_by_section: {
       critical_performance:
-        data.metrics_by_section.critical_performance?.map(
-          normalizeMetricUpdatedAt,
-        ) ?? [],
+        metricsBySection.critical_performance?.map(normalizeMetricUpdatedAt) ??
+        [],
       availability_performance:
-        data.metrics_by_section.availability_performance?.map(
+        metricsBySection.availability_performance?.map(
           normalizeMetricUpdatedAt,
         ) ?? [],
       profile_performance:
-        data.metrics_by_section.profile_performance?.map(
-          normalizeMetricUpdatedAt,
-        ) ?? [],
+        metricsBySection.profile_performance?.map(normalizeMetricUpdatedAt) ??
+        [],
       earnings_overview:
-        data.metrics_by_section.earnings_overview?.map(
-          normalizeMetricUpdatedAt,
-        ) ?? [],
+        metricsBySection.earnings_overview?.map(normalizeMetricUpdatedAt) ?? [],
       engagement_overview:
-        data.metrics_by_section.engagement_overview?.map(
-          normalizeMetricUpdatedAt,
-        ) ?? [],
+        metricsBySection.engagement_overview?.map(normalizeMetricUpdatedAt) ??
+        [],
     },
   };
 }
