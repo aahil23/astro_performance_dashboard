@@ -94,12 +94,12 @@ function parseDDMMDate(value: string): Date | null {
   const cleaned = String(value).trim();
 
   const match = cleaned.match(
-    /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i,
+    /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2}|\d{4})(?:[\sT]+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?)?$/i,
   );
 
   if (!match) return null;
 
-  const [, dd, mm, yy, hh, min, sec = "0", ampm] = match;
+  const [, dd, mm, yy, hh = "0", min = "0", sec = "0", ampm] = match;
 
   const day = Number(dd);
   const month = Number(mm);
@@ -143,11 +143,18 @@ function parseDDMMDate(value: string): Date | null {
 function parseUpdatedAt(value?: string | null): Date | null {
   if (!value) return null;
 
-  const ddmmDate = parseDDMMDate(value);
+  const cleaned = String(value).trim();
+
+  const ddmmDate = parseDDMMDate(cleaned);
   if (ddmmDate) return ddmmDate;
 
-  const isoDate = new Date(String(value).trim());
-  if (!Number.isNaN(isoDate.getTime())) return isoDate;
+  // Only fall back to native Date for unambiguous ISO 8601 strings
+  // (YYYY-MM-DD or YYYY-MM-DDTHH:mm...). Never for slash-separated
+  // strings, which the browser parses as MM/DD/YY.
+  if (/^\d{4}-\d{2}-\d{2}([T\s]|$)/.test(cleaned)) {
+    const isoDate = new Date(cleaned);
+    if (!Number.isNaN(isoDate.getTime())) return isoDate;
+  }
 
   return null;
 }
