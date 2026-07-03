@@ -27,6 +27,12 @@ import {
   startSession,
 } from "@/services/analytics";
 
+declare module "@tanstack/react-router" {
+  interface HistoryState {
+    message?: string;
+  }
+}
+
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
