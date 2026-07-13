@@ -1,68 +1,69 @@
 import { LogOut } from "lucide-react";
 import logo from "@/assets/logo.svg";
-import type { SaarthiIdentity } from "@/types/saarthi";
+import type { ApiExpert } from "@/services/dashboardApi";
 
-interface SaarthiExpertProfileCardProps {
-  identity: SaarthiIdentity;
-  phoneNumber?: string | null;
+interface Props {
+  expert: ApiExpert;
   onLogout: () => void;
+  lastUpdated?: string;
 }
 
-function formatPhoneNumber(phoneNumber?: string | null): string | null {
-  if (!phoneNumber) return null;
-
-  const digits = String(phoneNumber).replace(/\D/g, "");
-  const localNumber = digits.length > 10 ? digits.slice(-10) : digits;
-
-  return localNumber ? `+91 ${localNumber}` : null;
-}
-
-export function SaarthiExpertProfileCard({
-  identity,
-  phoneNumber,
+export function ExpertProfileCard({
+  expert,
   onLogout,
-}: SaarthiExpertProfileCardProps) {
-  const formattedPhone = formatPhoneNumber(phoneNumber);
-
+  lastUpdated,
+}: Props) {
   return (
-    <section className="rounded-[28px] border border-[#FDD9CE] bg-white px-5 py-5 shadow-[0_4px_14px_rgba(62,35,25,0.10)]">
-      <div className="flex items-center gap-4">
-        <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-[22px] bg-[#FEEEE9]">
-          <img
-            src={logo}
-            alt="AstroLokal"
-            className="h-14 w-14 object-contain"
-          />
+    <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
+      <div className="flex items-center gap-3">
+        {/* Logo */}
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-soft">
+          <img src={logo} alt="Logo" className="h-10 w-10" />
         </div>
 
-        <div className="min-w-0 flex-1">
-          <h2 className="truncate text-[22px] font-bold leading-tight text-[#111827]">
-            {identity.expertName}
-          </h2>
+        {/* Expert Details */}
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <p className="truncate text-base font-semibold text-foreground">
+            {expert.name}
+          </p>
 
-          {formattedPhone ? (
-            <p className="mt-1 text-[16px] text-[#68758A]">
-              {formattedPhone}
-            </p>
-          ) : null}
+          <p className="truncate text-sm text-muted-foreground">
+            +91 {expert.phone_number}
+          </p>
+
+          {/* Last Updated */}
+          {lastUpdated && (
+            <>
+              <p
+                className="mt-1 truncate text-[10px] leading-tight text-muted-foreground"
+                title={`Last updated: ${lastUpdated}`}
+              >
+                Last updated: {lastUpdated}
+              </p>
+
+              {/* Update Schedule */}
+              <p className="mt-0.5 text-[10px] leading-tight text-primary">
+                Updates at 9:00 AM & 9:00 PM daily
+              </p>
+            </>
+          )}
         </div>
 
-        <div className="flex shrink-0 flex-col items-end gap-3">
-          <span className="rounded-full bg-[#FEEEE9] px-3 py-1.5 text-[13px] font-semibold text-[#F45722]">
-            Expert ID: {identity.expertId}
+        {/* Right Section */}
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span className="rounded-full bg-brand-soft px-2 py-1 text-[10px] font-semibold text-primary">
+            Expert ID: {expert.expert_id}
           </span>
 
           <button
-            type="button"
             onClick={onLogout}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-xl px-2 py-1 text-[15px] font-semibold text-[#F45722] transition-colors hover:bg-[#FEEEE9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F45722]"
-            aria-label="Logout"
+            className="flex items-center gap-1 rounded-lg px-1.5 py-1 text-xs font-medium text-primary transition-colors hover:bg-brand-soft"
           >
             <LogOut className="h-4 w-4" />
             Logout
           </button>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
