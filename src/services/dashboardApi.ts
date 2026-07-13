@@ -26,6 +26,12 @@ export interface ApiExpert {
   expert_id: string;
   name: string;
   phone_number: string;
+  primary_language?: string;
+  variant?: string;
+  current_priority?: string;
+  next_priority?: string;
+  dashboard_version?: string;
+  dashboard_route?: string;
 }
 
 export type SectionKey =
