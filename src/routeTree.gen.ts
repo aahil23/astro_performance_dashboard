@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SaarthiRouteImport } from './routes/saarthi'
 import { Route as LoadingRouteImport } from './routes/loading'
 import { Route as ImpactRouteImport } from './routes/impact'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SaarthiRoute = SaarthiRouteImport.update({
+  id: '/saarthi',
+  path: '/saarthi',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoadingRoute = LoadingRouteImport.update({
   id: '/loading',
   path: '/loading',
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/help': typeof HelpRoute
   '/impact': typeof ImpactRoute
   '/loading': typeof LoadingRoute
+  '/saarthi': typeof SaarthiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/help': typeof HelpRoute
   '/impact': typeof ImpactRoute
   '/loading': typeof LoadingRoute
+  '/saarthi': typeof SaarthiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,21 @@ export interface FileRoutesById {
   '/help': typeof HelpRoute
   '/impact': typeof ImpactRoute
   '/loading': typeof LoadingRoute
+  '/saarthi': typeof SaarthiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/help' | '/impact' | '/loading'
+  fullPaths: '/' | '/dashboard' | '/help' | '/impact' | '/loading' | '/saarthi'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/help' | '/impact' | '/loading'
-  id: '__root__' | '/' | '/dashboard' | '/help' | '/impact' | '/loading'
+  to: '/' | '/dashboard' | '/help' | '/impact' | '/loading' | '/saarthi'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/help'
+    | '/impact'
+    | '/loading'
+    | '/saarthi'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,10 +93,18 @@ export interface RootRouteChildren {
   HelpRoute: typeof HelpRoute
   ImpactRoute: typeof ImpactRoute
   LoadingRoute: typeof LoadingRoute
+  SaarthiRoute: typeof SaarthiRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/saarthi': {
+      id: '/saarthi'
+      path: '/saarthi'
+      fullPath: '/saarthi'
+      preLoaderRoute: typeof SaarthiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/loading': {
       id: '/loading'
       path: '/loading'
@@ -125,6 +149,7 @@ const rootRouteChildren: RootRouteChildren = {
   HelpRoute: HelpRoute,
   ImpactRoute: ImpactRoute,
   LoadingRoute: LoadingRoute,
+  SaarthiRoute: SaarthiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
