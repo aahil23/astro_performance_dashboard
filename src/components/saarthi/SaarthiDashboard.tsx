@@ -1,17 +1,18 @@
-import { HeroWidget } from "./widgets/HeroWidget";
-import { FocusWidget } from "./widgets/FocusWidget";
-import { EarningsWidget } from "./widgets/EarningsWidget";
-import { PerformanceWidget } from "./widgets/PerformanceWidget";
-import { LeaderboardWidget } from "./widgets/LeaderboardWidget";
-import { RiskMeterWidget } from "./widgets/RiskMeterWidget";
-import { PriorityJourneyWidget } from "./widgets/PriorityJourneyWidget";
-import { HighlightWidget } from "./widgets/HighlightWidget";
-import { MantraWidget } from "./widgets/MantraWidget";
-import { SaarthiExpertProfileCard } from "./SaarthiExpertProfileCard";
+import { ExpertProfileCard } from "@/components/dashboard/ExpertProfileCard";
+import type { ApiExpert } from "@/services/dashboardApi";
 import type {
   SaarthiData,
   SaarthiLayoutItem,
 } from "@/types/saarthi";
+import { EarningsWidget } from "./widgets/EarningsWidget";
+import { FocusWidget } from "./widgets/FocusWidget";
+import { HeroWidget } from "./widgets/HeroWidget";
+import { HighlightWidget } from "./widgets/HighlightWidget";
+import { LeaderboardWidget } from "./widgets/LeaderboardWidget";
+import { MantraWidget } from "./widgets/MantraWidget";
+import { PerformanceWidget } from "./widgets/PerformanceWidget";
+import { PriorityJourneyWidget } from "./widgets/PriorityJourneyWidget";
+import { RiskMeterWidget } from "./widgets/RiskMeterWidget";
 
 interface Props {
   data: SaarthiData;
@@ -19,21 +20,60 @@ interface Props {
   onLogout: () => void;
 }
 
+function buildProfileExpert(
+  data: SaarthiData,
+  phoneNumber?: string | null,
+): ApiExpert {
+  return {
+    expert_id: String(data.identity.expertId),
+    name: data.identity.expertName,
+    phone_number: String(phoneNumber ?? ""),
+    primary_language: data.identity.primaryLanguage,
+    variant: data.identity.variant,
+    current_priority: data.identity.currentPriority,
+    next_priority: data.identity.nextPriority,
+    dashboard_version: "saarthi_v1",
+    dashboard_route: "saarthi",
+  };
+}
+
+function getLastUpdated(
+  metadata: SaarthiData["metadata"],
+): string | undefined {
+  if (!metadata) {
+    return undefined;
+  }
+
+  const generatedAtIst = metadata.generatedAtIst;
+
+  return typeof generatedAtIst === "string"
+    ? generatedAtIst
+    : undefined;
+}
+
 export function SaarthiDashboard({
   data,
   phoneNumber,
   onLogout,
 }: Props) {
-  const layout:
-    SaarthiLayoutItem[] =
-      data.layout ?? [];
+  const layout: SaarthiLayoutItem[] =
+    data.layout ?? [];
+
+  const expert = buildProfileExpert(
+    data,
+    phoneNumber,
+  );
+
+  const lastUpdated = getLastUpdated(
+    data.metadata,
+  );
 
   return (
     <main className="mx-auto w-full max-w-[760px] space-y-5 px-4 pb-10 pt-5 sm:px-6">
-      <SaarthiExpertProfileCard
-        identity={data.identity}
-        phoneNumber={phoneNumber}
+      <ExpertProfileCard
+        expert={expert}
         onLogout={onLogout}
+        lastUpdated={lastUpdated}
       />
 
       <HeroWidget
@@ -41,15 +81,13 @@ export function SaarthiDashboard({
         hero={data.hero}
       />
 
-      {layout.map(
-        (item, index) => (
-          <WidgetRenderer
-            key={`${item.id}-${index}`}
-            item={item}
-            data={data}
-          />
-        ),
-      )}
+      {layout.map((item, index) => (
+        <WidgetRenderer
+          key={`${item.id}-${index}`}
+          item={item}
+          data={data}
+        />
+      ))}
     </main>
   );
 }
@@ -81,9 +119,7 @@ function WidgetRenderer({
     case "performance":
       return data.performance ? (
         <PerformanceWidget
-          performance={
-            data.performance
-          }
+          performance={data.performance}
           size={item.size}
         />
       ) : null;
@@ -115,9 +151,7 @@ function WidgetRenderer({
     case "highlight":
       return data.highlight ? (
         <HighlightWidget
-          highlight={
-            data.highlight
-          }
+          highlight={data.highlight}
           size={item.size}
         />
       ) : null;
