@@ -4,6 +4,8 @@ import logo from "@/assets/logo.svg";
 import { session } from "@/lib/session";
 import { dashboardStore } from "@/lib/dashboard-store";
 import { fetchDashboardByPhone } from "@/services/dashboardApi";
+import { fetchSaarthiByPhone, SaarthiApiError } from "@/services/saarthiApi";
+import { saarthiStore } from "@/lib/saarthi-store";
 
 export const Route = createFileRoute("/loading")({
   component: LoadingScreen,
@@ -21,9 +23,28 @@ function LoadingScreen() {
       return;
     }
     fetchDashboardByPhone(phone)
-      .then((data) => {
+      .then(async (data) => {
         if (!active) return;
         dashboardStore.set(data);
+
+        const route = (data.expert.dashboard_route ?? "").toLowerCase();
+        if (route === "saarthi") {
+          try {
+            const saarthi = await fetchSaarthiByPhone(phone);
+            if (!active) return;
+            saarthiStore.set(saarthi);
+            navigate({ to: "/saarthi" });
+          } catch (err) {
+            if (!active) return;
+            const msg =
+              err instanceof SaarthiApiError
+                ? err.message
+                : "Something went wrong. Please try again.";
+            setError(msg);
+          }
+          return;
+        }
+
         navigate({ to: "/dashboard" });
       })
       .catch((e: Error) => {
@@ -37,6 +58,7 @@ function LoadingScreen() {
 
   const tryAgain = () => {
     dashboardStore.clear();
+    saarthiStore.clear();
     session.logout();
     navigate({ to: "/" });
   };
