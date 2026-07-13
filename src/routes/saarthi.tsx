@@ -8,10 +8,9 @@ import {
 } from "react";
 import { AppHeader } from "@/components/dashboard/AppHeader";
 import { SaarthiDashboard } from "@/components/saarthi/SaarthiDashboard";
+import { dashboardStore } from "@/lib/dashboard-store";
 import { saarthiStore } from "@/lib/saarthi-store";
 import { session } from "@/lib/session";
-import { dashboardStore } from "@/lib/dashboard-store";
-import type { SaarthiData } from "@/types/saarthi";
 import {
   endSession,
   hasLoggedSessionStarted,
@@ -20,11 +19,10 @@ import {
   registerInactivityLogoutHandler,
   startSession,
 } from "@/services/analytics";
+import type { SaarthiData } from "@/types/saarthi";
 
 export const Route =
-  createFileRoute(
-    "/saarthi",
-  )({
+  createFileRoute("/saarthi")({
     component: SaarthiPage,
   });
 
