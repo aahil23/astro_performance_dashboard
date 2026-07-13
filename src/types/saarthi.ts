@@ -161,3 +161,155 @@ export interface SaarthiResponse {
   data: SaarthiData;
   message?: string;
 }
+
+/* -------------------------------------------------------------------------
+ * Raw backend contract (Apps Script "experience" endpoint).
+ * These types describe the payload exactly as the backend sends it, using
+ * the backend's own field names. They are intentionally kept separate from
+ * the UI-facing types above — the adapter (src/adapters/saarthiAdapter.ts)
+ * is the only place that translates between the two.
+ * ---------------------------------------------------------------------- */
+
+export interface SaarthiRawIdentity {
+  expertId: number | string;
+  expertName: string;
+  primaryLanguage?: string | null;
+  currentPriority?: string | null;
+  nextPriority?: string | null;
+  variant?: string | null;
+}
+
+export interface SaarthiRawHero {
+  greeting?: string | null;
+  priority?: string | null;
+  nextPriority?: string | null;
+  message?: string | null;
+  motivation?: string | null;
+  progressPct?: number | null;
+  currentTtpuSec?: number | null;
+  targetTtpuSec?: number | null;
+  gapSec?: number | null;
+  gapDisplay?: string | null;
+  currentDisplay?: string | null;
+  targetDisplay?: string | null;
+}
+
+export interface SaarthiRawFocusItem {
+  type?: string | null;
+  score?: number | null;
+  status?: string | null;
+  currentValue?: number | string | null;
+  comparisonValue?: number | string | null;
+  targetValue?: number | string | null;
+  title?: string | null;
+  body?: string | null;
+  ctaLabel?: string | null;
+  ctaTarget?: string | null;
+}
+
+export interface SaarthiRawFocus {
+  primary?: SaarthiRawFocusItem | null;
+  secondary?: SaarthiRawFocusItem[] | null;
+}
+
+export interface SaarthiRawEarnings {
+  today?: number | null;
+  yesterday?: number | null;
+  sevenDayAvg?: number | null;
+  currentPriorityBenchmark?: number | null;
+  nextPriorityBenchmark?: number | null;
+  lowerPriorityBenchmark?: number | null;
+  todayVsYesterday?: number | null;
+  todayVsSevenDayAvg?: number | null;
+  unlockDelta?: number | null;
+  potentialLoss?: number | null;
+}
+
+export interface SaarthiRawMetricBlock {
+  today?: number | null;
+  yesterday?: number | null;
+  sevenDayAvg?: number | null;
+  target?: number | null;
+  status?: string | null;
+  [key: string]: unknown;
+}
+
+export interface SaarthiRawPerformance {
+  talkTime?: SaarthiRawMetricBlock | null;
+  pickup?: SaarthiRawMetricBlock | null;
+  availability?:
+    | (SaarthiRawMetricBlock & {
+        onlineTodayMin?: number | null;
+        onlineYesterdayMin?: number | null;
+        onlineSevenDayAvgMin?: number | null;
+        onlineTargetMin?: number | null;
+        utilisationTodayPct?: number | null;
+      })
+    | null;
+  repeat?: SaarthiRawMetricBlock | null;
+  loyal?: SaarthiRawMetricBlock | null;
+  ratings?: { count?: number | null; average?: number | null } | null;
+}
+
+export interface SaarthiRawRanking {
+  rank?: number | null;
+  cohortSize?: number | null;
+  yesterdayRank?: number | null;
+  movement?: number | null;
+}
+
+export interface SaarthiRawContent {
+  contentId?: string | null;
+  title?: string | null;
+  body?: string | null;
+  ctaLabel?: string | null;
+  ctaTarget?: string | null;
+}
+
+export interface SaarthiRawRisk {
+  level?: string | null;
+  reasonMetric?: string | null;
+  currentValue?: number | string | null;
+  safeValue?: number | string | null;
+  gap?: number | string | null;
+  content?: SaarthiRawContent | null;
+}
+
+export interface SaarthiRawJourney {
+  currentPriority?: string | null;
+  nextPriority?: string | null;
+  currentValueSec?: number | null;
+  targetValueSec?: number | null;
+  gapSec?: number | null;
+  progressPct?: number | null;
+  content?: SaarthiRawContent | null;
+}
+
+export interface SaarthiRawLayoutItem {
+  id: string;
+  size?: SaarthiWidgetSize;
+  collapsed?: boolean;
+}
+
+export interface SaarthiRawData {
+  schemaVersion?: string;
+  identity: SaarthiRawIdentity;
+  hero?: SaarthiRawHero | null;
+  focus?: SaarthiRawFocus | null;
+  earnings?: SaarthiRawEarnings | null;
+  performance?: SaarthiRawPerformance | null;
+  ranking?: SaarthiRawRanking | null;
+  risk?: SaarthiRawRisk | null;
+  journey?: SaarthiRawJourney | null;
+  highlight?: SaarthiRawContent | null;
+  mantra?: SaarthiRawContent | null;
+  layout?: SaarthiRawLayoutItem[] | null;
+  metadata?: Record<string, unknown> | null;
+}
+
+export interface SaarthiRawEnvelope {
+  statusCode: number;
+  success: boolean;
+  data: SaarthiRawData;
+  message?: string;
+}
