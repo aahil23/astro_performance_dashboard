@@ -1,6 +1,11 @@
 import { adaptSaarthiExperience } from "@/adapters/saarthiAdapter";
 import type { SaarthiData, SaarthiRawEnvelope } from "@/types/saarthi";
 
+export const SAARTHI_API_URL =
+  "https://script.google.com/macros/s/AKfycbyvf23IZRkfyjgZJXCDECBqLqtHIhFBkEU69WjFjbsC6nSaoCFXnPDk5ldD2ncM2JgxOg/exec";
+
+const SAARTHI_API_TOKEN = "8b7f3a1c5d9e2f4a6b8c0d1e3f5g7h9j";
+
 export class SaarthiApiError extends Error {
   constructor(
     message: string,
@@ -8,28 +13,6 @@ export class SaarthiApiError extends Error {
   ) {
     super(message);
   }
-}
-
-function getApiUrl(): string {
-  const url = import.meta.env.VITE_SAARTHI_API_URL;
-  if (!url) {
-    throw new SaarthiApiError(
-      "Saarthi API is not configured. Please contact support.",
-      "invalid_response",
-    );
-  }
-  return url;
-}
-
-function getApiToken(): string {
-  const token = import.meta.env.VITE_SAARTHI_API_TOKEN;
-  if (!token) {
-    throw new SaarthiApiError(
-      "Saarthi API is not configured. Please contact support.",
-      "invalid_response",
-    );
-  }
-  return token;
 }
 
 function isRawEnvelope(json: unknown): json is SaarthiRawEnvelope {
@@ -49,18 +32,15 @@ export async function fetchSaarthiExperience(
   expertId: string | number,
   signal?: AbortSignal,
 ): Promise<SaarthiData> {
-  const baseUrl = getApiUrl();
-  const token = getApiToken();
-
   const params = new URLSearchParams({
     action: "experience",
     expert_id: String(expertId),
-    token,
+    token: SAARTHI_API_TOKEN,
   });
 
   let res: Response;
   try {
-    res = await fetch(`${baseUrl}?${params.toString()}`, { signal });
+    res = await fetch(`${SAARTHI_API_URL}?${params.toString()}`, { signal });
   } catch (err) {
     if (err instanceof DOMException && err.name === "AbortError") throw err;
     throw new SaarthiApiError("Something went wrong. Please try again.", "network");
@@ -102,10 +82,8 @@ export async function fetchSaarthiExperience(
  */
 export async function checkSaarthiHealth(signal?: AbortSignal): Promise<boolean> {
   try {
-    const baseUrl = getApiUrl();
-    const token = getApiToken();
-    const params = new URLSearchParams({ action: "health", token });
-    const res = await fetch(`${baseUrl}?${params.toString()}`, { signal });
+    const params = new URLSearchParams({ action: "health", token: SAARTHI_API_TOKEN });
+    const res = await fetch(`${SAARTHI_API_URL}?${params.toString()}`, { signal });
     if (!res.ok) return false;
     const json = (await res.json()) as { success?: boolean };
     return Boolean(json?.success);
