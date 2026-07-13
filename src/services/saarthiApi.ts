@@ -1,94 +1,125 @@
-import { DASHBOARD_API_URL } from "./dashboardApi";
-import type { SaarthiData, SaarthiResponse, SaarthiLayoutItem } from "@/types/saarthi";
+import { adaptSaarthiExperience } from "@/adapters/saarthiAdapter";
+import type { SaarthiData, SaarthiRawEnvelope } from "@/types/saarthi";
 
 export class SaarthiApiError extends Error {
   constructor(
     message: string,
-    public kind: "not_found" | "disabled" | "network",
+    public kind: "not_found" | "disabled" | "network" | "invalid_response",
   ) {
     super(message);
   }
 }
 
-const DEFAULT_LAYOUT: SaarthiLayoutItem[] = [
-  { id: "focus", size: "large" },
-  { id: "earnings", size: "large" },
-  { id: "performance", size: "large" },
-  { id: "leaderboard", size: "medium" },
-  { id: "risk_meter", size: "medium" },
-  { id: "priority_journey", size: "medium" },
-  { id: "highlight", size: "small" },
-  { id: "mantra", size: "small" },
-];
-
-function normalize(data: SaarthiData): SaarthiData {
-  return {
-    ...data,
-    layout:
-      Array.isArray(data.layout) && data.layout.length > 0
-        ? data.layout
-        : DEFAULT_LAYOUT,
-  };
+function getApiUrl(): string {
+  const url = import.meta.env.VITE_SAARTHI_API_URL;
+  if (!url) {
+    throw new SaarthiApiError(
+      "Saarthi API is not configured. Please contact support.",
+      "invalid_response",
+    );
+  }
+  return url;
 }
 
-export async function fetchSaarthiByPhone(
-  phoneNumber: string,
+function getApiToken(): string {
+  const token = import.meta.env.VITE_SAARTHI_API_TOKEN;
+  if (!token) {
+    throw new SaarthiApiError(
+      "Saarthi API is not configured. Please contact support.",
+      "invalid_response",
+    );
+  }
+  return token;
+}
+
+function isRawEnvelope(json: unknown): json is SaarthiRawEnvelope {
+  if (typeof json !== "object" || json === null) return false;
+  const candidate = json as Record<string, unknown>;
+  return typeof candidate.success === "boolean" && typeof candidate.statusCode === "number";
+}
+
+/**
+ * Fetches the Saarthi "experience" dashboard JSON for a given expert_id and
+ * normalizes it into the shape the existing Saarthi widgets expect.
+ *
+ * Never call this with a phone number — the backend contract for this
+ * endpoint is keyed on expert_id.
+ */
+export async function fetchSaarthiExperience(
+  expertId: string | number,
+  signal?: AbortSignal,
 ): Promise<SaarthiData> {
+  const baseUrl = getApiUrl();
+  const token = getApiToken();
+
+  const params = new URLSearchParams({
+    action: "experience",
+    expert_id: String(expertId),
+    token,
+  });
+
   let res: Response;
   try {
-    res = await fetch(
-      `${DASHBOARD_API_URL}?action=getSaarthiByPhone&phone_number=${encodeURIComponent(
-        phoneNumber,
-      )}`,
-    );
-  } catch {
-    throw new SaarthiApiError(
-      "Something went wrong. Please try again.",
-      "network",
-    );
+    res = await fetch(`${baseUrl}?${params.toString()}`, { signal });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+    throw new SaarthiApiError("Something went wrong. Please try again.", "network");
   }
 
-  let json: Partial<SaarthiResponse> & { message?: string };
+  if (!res.ok) {
+    throw new SaarthiApiError("Something went wrong. Please try again.", "network");
+  }
+
+  let json: unknown;
   try {
-    json = (await res.json()) as SaarthiResponse;
+    json = await res.json();
   } catch {
-    throw new SaarthiApiError(
-      "Something went wrong. Please try again.",
-      "network",
-    );
+    throw new SaarthiApiError("Something went wrong. Please try again.", "network");
   }
 
-  if (json.success && json.data) return normalize(json.data);
+  if (!isRawEnvelope(json)) {
+    throw new SaarthiApiError("Something went wrong. Please try again.", "invalid_response");
+  }
 
-  const msg = (json.message || "").toLowerCase();
-  if (msg.includes("not found")) {
-    throw new SaarthiApiError(
-      "No Saarthi profile found for this mobile number.",
-      "not_found",
-    );
+  if (!json.success || !json.data) {
+    const msg = (json.message || "").toLowerCase();
+    if (msg.includes("not found")) {
+      throw new SaarthiApiError("No Saarthi profile found for this expert.", "not_found");
+    }
+    if (msg.includes("disabled")) {
+      throw new SaarthiApiError("Your Saarthi access is currently disabled.", "disabled");
+    }
+    throw new SaarthiApiError("Something went wrong. Please try again.", "network");
   }
-  if (msg.includes("disabled")) {
-    throw new SaarthiApiError(
-      "Your Saarthi access is currently disabled.",
-      "disabled",
-    );
+
+  return adaptSaarthiExperience(json.data);
+}
+
+/**
+ * Lightweight health check against the Saarthi API. Never throws — returns
+ * false on any failure so callers can use it for diagnostics without
+ * disrupting the main flow.
+ */
+export async function checkSaarthiHealth(signal?: AbortSignal): Promise<boolean> {
+  try {
+    const baseUrl = getApiUrl();
+    const token = getApiToken();
+    const params = new URLSearchParams({ action: "health", token });
+    const res = await fetch(`${baseUrl}?${params.toString()}`, { signal });
+    if (!res.ok) return false;
+    const json = (await res.json()) as { success?: boolean };
+    return Boolean(json?.success);
+  } catch {
+    return false;
   }
-  throw new SaarthiApiError(
-    "Something went wrong. Please try again.",
-    "network",
-  );
 }
 
 export function formatInr(value: number | null | undefined): string {
-  if (value === null || value === undefined || Number.isNaN(Number(value)))
-    return "—";
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return "—";
   return `₹${Number(value).toLocaleString("en-IN")}`;
 }
 
-export function formatDuration(
-  value: number | string | null | undefined,
-  format?: string,
-): string {
+export function formatDuration(value: number | string | null | undefined, format?: string): string {
   if (value === null || value === undefined || value === "") return "—";
   const n = Number(value);
   if (Number.isNaN(n)) return String(value);
@@ -98,7 +129,7 @@ export function formatDuration(
     return `${mins}m ${secs.toString().padStart(2, "0")}s`;
   }
   if (format === "minutes") return `${n.toFixed(1)} min`;
-  if (format === "percent") return `${n.toFixed(1)}%`;
+  if (format === "percent") return `${Math.min(100, n).toFixed(1)}%`;
   if (format === "inr") return formatInr(n);
   return String(value);
 }
