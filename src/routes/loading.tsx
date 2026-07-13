@@ -4,7 +4,7 @@ import logo from "@/assets/logo.svg";
 import { session } from "@/lib/session";
 import { dashboardStore } from "@/lib/dashboard-store";
 import { fetchDashboardByPhone } from "@/services/dashboardApi";
-import { fetchSaarthiByPhone, SaarthiApiError } from "@/services/saarthiApi";
+import { fetchSaarthiExperience, SaarthiApiError } from "@/services/saarthiApi";
 import { saarthiStore } from "@/lib/saarthi-store";
 
 export const Route = createFileRoute("/loading")({
@@ -28,9 +28,12 @@ function LoadingScreen() {
         dashboardStore.set(data);
 
         const route = (data.expert.dashboard_route ?? "").toLowerCase();
-        if (route === "saarthi") {
+        const variant = (data.expert.variant ?? "").toLowerCase();
+        const shouldUseSaarthi = route === "saarthi" || (!route && variant === "treatment");
+
+        if (shouldUseSaarthi) {
           try {
-            const saarthi = await fetchSaarthiByPhone(phone);
+            const saarthi = await fetchSaarthiExperience(data.expert.expert_id);
             if (!active) return;
             saarthiStore.set(saarthi);
             navigate({ to: "/saarthi" });
