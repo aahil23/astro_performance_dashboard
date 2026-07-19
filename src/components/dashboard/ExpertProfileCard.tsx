@@ -14,56 +14,46 @@ export function ExpertProfileCard({
   lastUpdated,
 }: Props) {
   return (
-    <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
-      <div className="flex items-center gap-3">
-        {/* Logo */}
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-soft">
-          <img src={logo} alt="Logo" className="h-10 w-10" />
-        </div>
+    <section className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <img src={logo} alt="AstroLokal" className="h-10 w-10 shrink-0" />
 
-        {/* Expert Details */}
-        <div className="min-w-0 flex-1 overflow-hidden">
-          <p className="truncate text-base font-semibold text-foreground">
-            {expert.name}
-          </p>
-
-          <p className="truncate text-sm text-muted-foreground">
-            +91 {expert.phone_number}
-          </p>
-
-          {/* Last Updated */}
-          {lastUpdated && (
-            <>
-              <p
-                className="mt-1 truncate text-[10px] leading-tight text-muted-foreground"
-                title={`Last updated: ${lastUpdated}`}
-              >
-                Last updated: {lastUpdated}
+          <div className="min-w-0">
+            <h1 className="truncate text-base font-bold leading-tight text-foreground">
+              {expert.name}
+            </h1>
+            {expert.phone_number ? (
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                +91 {expert.phone_number}
               </p>
-
-              {/* Update Schedule */}
-              <p className="mt-0.5 text-[10px] leading-tight text-primary">
-                Updates at 9:00 AM & 9:00 PM daily
-              </p>
-            </>
-          )}
+            ) : null}
+          </div>
         </div>
 
-        {/* Right Section */}
-        <div className="flex shrink-0 flex-col items-end gap-1">
-          <span className="rounded-full bg-brand-soft px-2 py-1 text-[10px] font-semibold text-primary">
-            Expert ID: {expert.expert_id}
-          </span>
-
-          <button
-            onClick={onLogout}
-            className="flex items-center gap-1 rounded-lg px-1.5 py-1 text-xs font-medium text-primary transition-colors hover:bg-brand-soft"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onLogout}
+          className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border/60 px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <LogOut className="h-3.5 w-3.5" />
+          Logout
+        </button>
       </div>
-    </div>
+
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border/50 pt-2.5 text-[11px] leading-4 text-muted-foreground">
+        <span className="rounded-full bg-muted px-2 py-0.5 font-medium">
+          Expert ID: {expert.expert_id}
+        </span>
+
+        {lastUpdated ? (
+          <span className="text-right">
+            Last updated: {lastUpdated} · Updates at 9:00 AM & 9:00 PM
+          </span>
+        ) : (
+          <span>Updates at 9:00 AM & 9:00 PM daily</span>
+        )}
+      </div>
+    </section>
   );
 }
