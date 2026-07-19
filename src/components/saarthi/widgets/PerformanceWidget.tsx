@@ -18,28 +18,17 @@ const METRIC_ORDER = [
   "rating",
 ];
 
-export function PerformanceWidget({
-  performance,
-}: Props) {
+export function PerformanceWidget({ performance }: Props) {
   const sourceMetrics = performance?.metrics ?? [];
-
   const metrics = METRIC_ORDER.map((key) =>
     sourceMetrics.find((metric) => metric.key === key),
-  ).filter(
-    (metric): metric is SaarthiPerformanceMetric =>
-      Boolean(metric),
-  );
+  ).filter((metric): metric is SaarthiPerformanceMetric => Boolean(metric));
 
-  if (metrics.length === 0) {
-    return null;
-  }
+  if (metrics.length === 0) return null;
 
   return (
-    <WidgetShell
-      title="Performance"
-      subtitle="Today vs your recent trend"
-    >
-      <div className="grid grid-cols-3 gap-1.5">
+    <WidgetShell title="Performance" subtitle="Today vs your recent trend">
+      <div className="grid grid-cols-3 gap-2">
         {metrics.slice(0, 6).map((metric) => (
           <MetricCard key={metric.key} metric={metric} />
         ))}
@@ -48,61 +37,36 @@ export function PerformanceWidget({
   );
 }
 
-function MetricCard({
-  metric,
-}: {
-  metric: SaarthiPerformanceMetric;
-}) {
+function MetricCard({ metric }: { metric: SaarthiPerformanceMetric }) {
   const title = getCompactLabel(metric);
-  const today = formatMetricValue(
-    metric.today,
-    metric.format,
-  );
-  const yesterday = formatMetricValue(
-    metric.yesterday,
-    metric.format,
-  );
-  const average7d = formatMetricValue(
-    metric.average7d,
-    metric.format,
-  );
+  const today = formatMetricValue(metric.today, metric.format);
+  const yesterday = formatMetricValue(metric.yesterday, metric.format);
+  const average7d = formatMetricValue(metric.average7d, metric.format);
   const status = formatStatus(metric.status);
 
   return (
-    <article
-      className="min-w-0 rounded-xl border border-border/60 bg-background/75 px-2 py-2"
-    >
-      <p className="truncate text-[10px] font-semibold leading-3 text-muted-foreground">
+    <div className="min-w-0 rounded-xl border border-border/60 bg-muted/20 px-2.5 py-2.5">
+      <p className="truncate text-[11px] font-semibold text-muted-foreground">
         {title}
       </p>
-
-      <p className="mt-1 truncate text-[18px] font-bold leading-5 tracking-tight text-foreground">
+      <p className="mt-1 truncate text-base font-bold leading-none text-foreground">
         {today}
       </p>
-
-      <p className="mt-1 truncate text-[9px] leading-3 text-muted-foreground">
+      <p className="mt-1.5 truncate text-[10px] leading-3 text-muted-foreground">
         Y {yesterday} · 7d {average7d}
       </p>
-
-      {status ? (
-        <p
-          className={[
-            "mt-1.5 truncate text-[9px] font-semibold leading-3",
-            getStatusClass(metric.status),
-          ].join(" ")}
-        >
-          {status}
-        </p>
-      ) : (
-        <div className="mt-1.5 h-3" />
-      )}
-    </article>
+      <p
+        className={`mt-1.5 min-h-3 truncate text-[10px] font-semibold leading-3 ${getStatusClass(
+          metric.status,
+        )}`}
+      >
+        {status ?? "\u00A0"}
+      </p>
+    </div>
   );
 }
 
-function getCompactLabel(
-  metric: SaarthiPerformanceMetric,
-): string {
+function getCompactLabel(metric: SaarthiPerformanceMetric): string {
   const labels: Record<string, string> = {
     talk_time: "Talk Time",
     pickup: "Pickup",
@@ -111,7 +75,6 @@ function getCompactLabel(
     loyal: "Loyal",
     rating: "Rating",
   };
-
   return labels[metric.key] || metric.label || metric.key;
 }
 
@@ -119,33 +82,20 @@ function formatMetricValue(
   value: unknown,
   format: SaarthiPerformanceMetric["format"],
 ): string {
-  if (
-    value === null ||
-    value === undefined ||
-    value === ""
-  ) {
-    return "—";
-  }
+  if (value === null || value === undefined || value === "") return "—";
 
   const numericValue = Number(value);
-
-  if (!Number.isFinite(numericValue)) {
-    return String(value);
-  }
+  if (!Number.isFinite(numericValue)) return String(value);
 
   switch (format) {
     case "seconds":
       return formatSeconds(numericValue);
-
     case "minutes":
       return formatMinutes(numericValue);
-
     case "percent":
       return `${formatNumber(numericValue)}%`;
-
     case "inr":
       return formatCurrency(numericValue);
-
     case "number":
     default:
       return formatNumber(numericValue);
@@ -156,15 +106,8 @@ function formatSeconds(value: number): string {
   const seconds = Math.max(0, Math.round(value));
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
-
-  if (minutes === 0) {
-    return `${remainingSeconds}s`;
-  }
-
-  if (remainingSeconds === 0) {
-    return `${minutes}m`;
-  }
-
+  if (minutes === 0) return `${remainingSeconds}s`;
+  if (remainingSeconds === 0) return `${minutes}m`;
   return `${minutes}m ${remainingSeconds}s`;
 }
 
@@ -172,15 +115,8 @@ function formatMinutes(value: number): string {
   const minutes = Math.max(0, Math.round(value));
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
-
-  if (hours === 0) {
-    return `${remainingMinutes}m`;
-  }
-
-  if (remainingMinutes === 0) {
-    return `${hours}h`;
-  }
-
+  if (hours === 0) return `${remainingMinutes}m`;
+  if (remainingMinutes === 0) return `${hours}h`;
   return `${hours}h ${remainingMinutes}m`;
 }
 
@@ -198,34 +134,9 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-function buildRatingMeta(
-  metric: SaarthiPerformanceMetric,
-): string | null {
-  const count = Number(metric.count);
-  const target = formatMetricValue(
-    metric.target,
-    metric.format,
-  );
-
-  if (Number.isFinite(count) && count > 0) {
-    return `${Math.round(count)} ratings · Target ${target}`;
-  }
-
-  return metric.target !== null &&
-    metric.target !== undefined
-    ? `Target ${target}`
-    : null;
-}
-
 function formatStatus(status: unknown): string | null {
-  if (!status) {
-    return null;
-  }
-
-  const normalized = String(status)
-    .trim()
-    .toLowerCase();
-
+  if (!status) return null;
+  const normalized = String(status).trim().toLowerCase();
   const labels: Record<string, string> = {
     above_target: "Above target",
     improving: "Improving",
@@ -235,22 +146,16 @@ function formatStatus(status: unknown): string | null {
     protected: "Protected",
     watch: "Watch",
   };
-
   return (
     labels[normalized] ||
     normalized
       .replace(/_/g, " ")
-      .replace(/\b\w/g, (character) =>
-        character.toUpperCase(),
-      )
+      .replace(/\b\w/g, (character) => character.toUpperCase())
   );
 }
 
 function getStatusClass(status: unknown): string {
-  const normalized = String(status || "")
-    .trim()
-    .toLowerCase();
-
+  const normalized = String(status || "").trim().toLowerCase();
   const classes: Record<string, string> = {
     above_target: "text-emerald-600",
     improving: "text-blue-600",
@@ -258,6 +163,5 @@ function getStatusClass(status: unknown): string {
     needs_attention: "text-orange-600",
     insufficient_data: "text-muted-foreground",
   };
-
   return classes[normalized] || "text-muted-foreground";
 }
