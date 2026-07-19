@@ -1,4 +1,5 @@
 import type {
+  SaarthiCoaching,
   SaarthiData,
   SaarthiEarnings,
   SaarthiFocus,
@@ -13,22 +14,13 @@ import type {
   SaarthiPerformance,
   SaarthiPerformanceMetric,
   SaarthiRanking,
+  SaarthiRawCoaching,
   SaarthiRawContent,
   SaarthiRawData,
   SaarthiRawFocusItem,
   SaarthiRisk,
   SaarthiWidgetId,
 } from "@/types/saarthi";
-
-/**
- * Adapter layer: Apps Script response -> UI view model.
- *
- * This is the ONLY place that knows both the backend's raw field names and
- * the shape the existing Saarthi widgets expect. It performs no business
- * logic — it does not recompute priority, risk, focus scores, or widget
- * visibility. It only renames/reshapes fields and applies safe display
- * formatting (unit conversions), leaving all decisions to the backend.
- */
 
 const KNOWN_WIDGET_IDS: SaarthiWidgetId[] = [
   "focus",
@@ -41,265 +33,447 @@ const KNOWN_WIDGET_IDS: SaarthiWidgetId[] = [
   "risk_meter",
 ];
 
-// Priority ladder used only to render step progress in the journey widget.
-// This does not decide priority — it just orders the labels the backend
-// already told us are current/next.
 const PRIORITY_LADDER = ["P5", "P4", "P3", "P2", "P1"];
 
-function isNil(v: unknown): v is null | undefined {
-  return v === null || v === undefined;
+function isNil(value: unknown): value is null | undefined {
+  return value === null || value === undefined;
 }
 
-function secondsToDisplay(v: number | null | undefined): string | null {
-  if (isNil(v) || Number.isNaN(Number(v))) return null;
-  const n = Number(v);
-  const mins = Math.floor(n / 60);
-  const secs = Math.round(n % 60);
-  return `${mins}m ${secs.toString().padStart(2, "0")}s`;
+function secondsToDisplay(
+  value: number | null | undefined,
+): string | null {
+  if (isNil(value) || Number.isNaN(Number(value))) {
+    return null;
+  }
+
+  const numericValue = Number(value);
+  const minutes = Math.floor(numericValue / 60);
+  const seconds = Math.round(numericValue % 60);
+
+  return `${minutes}m ${seconds
+    .toString()
+    .padStart(2, "0")}s`;
 }
 
-function mapIdentity(raw: SaarthiRawData): SaarthiIdentity {
+function mapIdentity(
+  raw: SaarthiRawData,
+): SaarthiIdentity {
   const identity = raw.identity;
+
   return {
     expertId: identity.expertId,
     expertName: identity.expertName,
-    primaryLanguage: identity.primaryLanguage ?? undefined,
-    currentPriority: identity.currentPriority ?? undefined,
-    nextPriority: identity.nextPriority ?? undefined,
-    variant: identity.variant ?? undefined,
+    primaryLanguage:
+      identity.primaryLanguage ?? undefined,
+    currentPriority:
+      identity.currentPriority ?? undefined,
+    nextPriority:
+      identity.nextPriority ?? undefined,
+    variant:
+      identity.variant ?? undefined,
   };
 }
 
-function mapHero(raw: SaarthiRawData): SaarthiHero | null {
+function mapHero(
+  raw: SaarthiRawData,
+): SaarthiHero | null {
   const hero = raw.hero;
-  if (!hero) return null;
+
+  if (!hero) {
+    return null;
+  }
+
   return {
     greeting: hero.greeting ?? undefined,
     priorityLabel: hero.priority ?? undefined,
     message: hero.message ?? undefined,
     motivation: hero.motivation ?? undefined,
     progressPercent: hero.progressPct ?? null,
-    currentAtt: hero.currentDisplay ?? null,
-    targetAtt: hero.targetDisplay ?? null,
-    gap: hero.gapDisplay ?? null,
+    currentAtt:
+      hero.currentDisplay ??
+      secondsToDisplay(hero.currentTtpuSec),
+    targetAtt:
+      hero.targetDisplay ??
+      secondsToDisplay(hero.targetTtpuSec),
+    gap:
+      hero.gapDisplay ??
+      secondsToDisplay(hero.gapSec),
   };
 }
 
-function mapFocusItem(item: SaarthiRawFocusItem | null | undefined): SaarthiFocusItem | null {
-  if (!item) return null;
+function mapCoaching(
+  coaching?: SaarthiRawCoaching | null,
+): SaarthiCoaching | null {
+  if (!coaching?.metricKey) {
+    return null;
+  }
+
+  const actions = (coaching.actions ?? [])
+    .filter(
+      (action) =>
+        Boolean(action?.id) &&
+        Boolean(action?.text),
+    )
+    .map((action) => ({
+      id: String(action.id),
+      category:
+        action.category ?? undefined,
+      text: String(action.text),
+    }));
+
+  if (actions.length === 0) {
+    return null;
+  }
+
+  return {
+    metricKey: coaching.metricKey,
+    actions,
+  };
+}
+
+function mapFocusItem(
+  item: SaarthiRawFocusItem | null | undefined,
+): SaarthiFocusItem | null {
+  if (!item) {
+    return null;
+  }
+
   return {
     id: item.type ?? undefined,
+    type: item.type ?? undefined,
     title: item.title ?? undefined,
     body: item.body ?? undefined,
     currentValue: item.currentValue ?? null,
+    comparisonValue:
+      item.comparisonValue ?? null,
     targetValue: item.targetValue ?? null,
     status: item.status ?? null,
     ctaLabel: item.ctaLabel ?? undefined,
     ctaTarget: item.ctaTarget ?? undefined,
+    coaching: mapCoaching(item.coaching),
   };
 }
 
-function mapFocus(raw: SaarthiRawData): SaarthiFocus | null {
+function mapFocus(
+  raw: SaarthiRawData,
+): SaarthiFocus | null {
   const focus = raw.focus;
-  if (!focus) return null;
+
+  if (!focus) {
+    return null;
+  }
+
   return {
     primary: mapFocusItem(focus.primary),
     secondary: (focus.secondary ?? [])
       .map(mapFocusItem)
-      .filter((i): i is SaarthiFocusItem => i !== null),
+      .filter(
+        (item): item is SaarthiFocusItem =>
+          item !== null,
+      ),
   };
 }
 
-function mapEarnings(raw: SaarthiRawData): SaarthiEarnings | null {
+function mapEarnings(
+  raw: SaarthiRawData,
+): SaarthiEarnings | null {
   const earnings = raw.earnings;
-  if (!earnings) return null;
+
+  if (!earnings) {
+    return null;
+  }
+
   return {
     today: earnings.today ?? null,
     yesterday: earnings.yesterday ?? null,
     average7d: earnings.sevenDayAvg ?? null,
-    currentBenchmark: earnings.currentPriorityBenchmark ?? null,
-    nextBenchmark: earnings.nextPriorityBenchmark ?? null,
-    unlockDelta: earnings.unlockDelta ?? null,
-    potentialLoss: earnings.potentialLoss ?? null,
-    currentPriorityLabel: raw.identity.currentPriority ?? undefined,
-    nextPriorityLabel: raw.identity.nextPriority ?? undefined,
+    currentBenchmark:
+      earnings.currentPriorityBenchmark ?? null,
+    nextBenchmark:
+      earnings.nextPriorityBenchmark ?? null,
+    unlockDelta:
+      earnings.unlockDelta ?? null,
+    potentialLoss:
+      earnings.potentialLoss ?? null,
+    currentPriorityLabel:
+      raw.identity.currentPriority ?? undefined,
+    nextPriorityLabel:
+      raw.identity.nextPriority ?? undefined,
   };
 }
 
-function mapPerformance(raw: SaarthiRawData): SaarthiPerformance | null {
-  const perf = raw.performance;
-  if (!perf) return null;
+function mapPerformance(
+  raw: SaarthiRawData,
+): SaarthiPerformance | null {
+  const performance = raw.performance;
+
+  if (!performance) {
+    return null;
+  }
 
   const metrics: SaarthiPerformanceMetric[] = [];
 
-  if (perf.talkTime) {
+  if (performance.talkTime) {
     metrics.push({
       key: "talk_time",
       label: "Talk Time",
-      today: perf.talkTime.today ?? null,
-      yesterday: perf.talkTime.yesterday ?? null,
-      average7d: perf.talkTime.sevenDayAvg ?? null,
-      target: perf.talkTime.target ?? null,
-      status: perf.talkTime.status ?? null,
+      today:
+        performance.talkTime.today ?? null,
+      yesterday:
+        performance.talkTime.yesterday ?? null,
+      average7d:
+        performance.talkTime.sevenDayAvg ?? null,
+      target:
+        performance.talkTime.target ?? null,
+      status:
+        performance.talkTime.status ?? null,
       format: "seconds",
     });
   }
 
-  if (perf.pickup) {
+  if (performance.pickup) {
     metrics.push({
       key: "pickup",
       label: "Pickup Rate",
-      today: perf.pickup.today ?? null,
-      yesterday: perf.pickup.yesterday ?? null,
-      average7d: perf.pickup.sevenDayAvg ?? null,
-      target: perf.pickup.target ?? null,
-      status: perf.pickup.status ?? null,
+      today:
+        performance.pickup.today ?? null,
+      yesterday:
+        performance.pickup.yesterday ?? null,
+      average7d:
+        performance.pickup.sevenDayAvg ?? null,
+      target:
+        performance.pickup.target ?? null,
+      status:
+        performance.pickup.status ?? null,
       format: "percent",
     });
   }
 
-  if (perf.availability) {
-    const avail = perf.availability;
+  if (performance.availability) {
     metrics.push({
       key: "availability",
-      label: "Availability",
-      today: avail.onlineTodayMin ?? null,
-      yesterday: avail.onlineYesterdayMin ?? null,
-      average7d: avail.onlineSevenDayAvgMin ?? null,
-      target: avail.onlineTargetMin ?? null,
-      status: avail.status ?? null,
+      label: "Online Time",
+      today:
+        performance.availability
+          .onlineTodayMin ?? null,
+      yesterday:
+        performance.availability
+          .onlineYesterdayMin ?? null,
+      average7d:
+        performance.availability
+          .onlineSevenDayAvgMin ?? null,
+      target:
+        performance.availability
+          .onlineTargetMin ?? null,
+      status:
+        performance.availability.status ?? null,
       format: "minutes",
     });
+
+    if (
+      !isNil(
+        performance.availability
+          .utilisationTodayPct,
+      )
+    ) {
+      metrics.push({
+        key: "utilisation",
+        label: "Utilisation",
+        today:
+          performance.availability
+            .utilisationTodayPct ?? null,
+        status:
+          performance.availability.status ?? null,
+        format: "percent",
+      });
+    }
   }
 
-  if (perf.repeat) {
+  if (performance.repeat) {
     metrics.push({
       key: "repeat",
       label: "Repeat Users",
-      today: perf.repeat.today ?? null,
-      yesterday: perf.repeat.yesterday ?? null,
-      average7d: perf.repeat.sevenDayAvg ?? null,
-      target: perf.repeat.target ?? null,
-      status: perf.repeat.status ?? null,
-      format: "number",
+      today:
+        performance.repeat.today ?? null,
+      yesterday:
+        performance.repeat.yesterday ?? null,
+      average7d:
+        performance.repeat.sevenDayAvg ?? null,
+      status:
+        performance.repeat.status ?? null,
+      format: "percent",
     });
   }
 
-  if (perf.loyal) {
+  if (performance.loyal) {
     metrics.push({
       key: "loyal",
       label: "Loyal Users",
-      today: perf.loyal.today ?? null,
-      yesterday: perf.loyal.yesterday ?? null,
-      average7d: perf.loyal.sevenDayAvg ?? null,
-      target: perf.loyal.target ?? null,
-      status: perf.loyal.status ?? null,
-      format: "number",
+      today:
+        performance.loyal.today ?? null,
+      yesterday:
+        performance.loyal.yesterday ?? null,
+      average7d:
+        performance.loyal.sevenDayAvg ?? null,
+      status:
+        performance.loyal.status ?? null,
+      format: "percent",
     });
   }
 
-  if (!metrics.length) return null;
+  if (performance.ratings) {
+    metrics.push({
+      key: "rating",
+      label: "Rating",
+      today:
+        performance.ratings.average ?? null,
+      target: 5,
+      format: "number",
+      count:
+        performance.ratings.count ?? null,
+    });
+  }
 
   return {
-    featuredKey: "talk_time",
+    featuredKey:
+      raw.focus?.primary?.type ?? undefined,
     metrics,
   };
 }
 
-function mapRanking(raw: SaarthiRawData): SaarthiRanking | null {
+function mapRanking(
+  raw: SaarthiRawData,
+): SaarthiRanking | null {
   const ranking = raw.ranking;
-  if (!ranking) return null;
+
+  if (!ranking) {
+    return null;
+  }
+
   return {
     currentRank: ranking.rank ?? null,
-    yesterdayRank: ranking.yesterdayRank ?? null,
-    cohortSize: ranking.cohortSize ?? null,
-    movement: ranking.movement ?? null,
+    yesterdayRank:
+      ranking.yesterdayRank ?? null,
+    cohortSize:
+      ranking.cohortSize ?? null,
+    movement:
+      ranking.movement ?? null,
   };
 }
 
-function mapRiskLevel(level: string | null | undefined): string | null {
-  if (!level) return null;
-  const normalized = level.toLowerCase();
-  if (normalized === "safe" || normalized === "protected") return "protected";
-  if (normalized === "watch") return "watch";
-  if (normalized === "critical" || normalized === "needs_attention") {
-    return "needs_attention";
+function mapContentBlock(
+  raw?: SaarthiRawContent | null,
+): SaarthiHighlight | null {
+  if (!raw) {
+    return null;
   }
-  return normalized;
+
+  return {
+    title: raw.title ?? undefined,
+    message: raw.body ?? undefined,
+  };
 }
 
-function mapRisk(raw: SaarthiRawData): SaarthiRisk | null {
-  const risk = raw.risk;
-  if (!risk) return null;
+function mapMantra(
+  raw?: SaarthiRawContent | null,
+): SaarthiMantra | null {
+  if (!raw) {
+    return null;
+  }
+
   return {
-    state: mapRiskLevel(risk.level),
-    title: risk.content?.title ?? undefined,
-    message: risk.content?.body ?? undefined,
-    reasonMetric: risk.reasonMetric ?? undefined,
-    currentValue: risk.currentValue ?? null,
-    safeValue: risk.safeValue ?? null,
+    title: raw.title ?? undefined,
+    message: raw.body ?? undefined,
+    ctaLabel: raw.ctaLabel ?? undefined,
+    ctaTarget: raw.ctaTarget ?? undefined,
+  };
+}
+
+function mapRisk(
+  raw: SaarthiRawData,
+): SaarthiRisk | null {
+  const risk = raw.risk;
+
+  if (!risk) {
+    return null;
+  }
+
+  return {
+    state: risk.level ?? null,
+    title:
+      risk.content?.title ?? undefined,
+    message:
+      risk.content?.body ?? undefined,
+    reasonMetric:
+      risk.reasonMetric ?? undefined,
+    currentValue:
+      risk.currentValue ?? null,
+    safeValue:
+      risk.safeValue ?? null,
     gap: risk.gap ?? null,
   };
 }
 
-function buildJourneySteps(
-  currentPriority: string | null | undefined,
-  nextPriority: string | null | undefined,
-): SaarthiJourneyStep[] {
-  if (!currentPriority) return [];
-  const currentIndex = PRIORITY_LADDER.indexOf(currentPriority);
-  if (currentIndex === -1) return [];
-  return PRIORITY_LADDER.map((key) => ({
-    key,
-    label: key,
-    isCurrent: key === currentPriority,
-    isNext: key === nextPriority,
-  }));
-}
-
-function mapJourney(raw: SaarthiRawData): SaarthiJourney | null {
+function mapJourney(
+  raw: SaarthiRawData,
+): SaarthiJourney | null {
   const journey = raw.journey;
-  if (!journey) return null;
 
-  const steps = buildJourneySteps(journey.currentPriority, journey.nextPriority);
-  if (!steps.length) return null;
+  if (!journey) {
+    return null;
+  }
+
+  const currentPriority =
+    journey.currentPriority ?? "";
+  const nextPriority =
+    journey.nextPriority ?? "";
+
+  const steps: SaarthiJourneyStep[] =
+    PRIORITY_LADDER.map((priority) => ({
+      key: priority,
+      label: priority,
+      isCurrent:
+        priority === currentPriority,
+      isNext:
+        priority === nextPriority,
+    }));
 
   return {
     steps,
-    currentTtpu: secondsToDisplay(journey.currentValueSec),
-    targetTtpu: secondsToDisplay(journey.targetValueSec),
-    gap: secondsToDisplay(journey.gapSec),
-    progressPercent: journey.progressPct ?? null,
-    message: journey.content?.body ?? undefined,
+    currentTtpu:
+      secondsToDisplay(
+        journey.currentValueSec,
+      ),
+    targetTtpu:
+      secondsToDisplay(
+        journey.targetValueSec,
+      ),
+    gap:
+      secondsToDisplay(journey.gapSec),
+    progressPercent:
+      journey.progressPct ?? null,
+    message:
+      journey.content?.body ?? undefined,
   };
 }
 
-function mapContentBlock(content: SaarthiRawContent | null | undefined): SaarthiHighlight | null {
-  if (!content?.body) return null;
-  return {
-    title: content.title ?? undefined,
-    message: content.body ?? undefined,
-  };
-}
-
-function mapMantra(content: SaarthiRawContent | null | undefined): SaarthiMantra | null {
-  if (!content?.body) return null;
-  return {
-    title: content.title ?? undefined,
-    message: content.body ?? undefined,
-    ctaLabel: content.ctaLabel ?? undefined,
-    ctaTarget: content.ctaTarget ?? undefined,
-  };
-}
-
-function mapLayout(raw: SaarthiRawData): SaarthiLayoutItem[] {
+function mapLayout(
+  raw: SaarthiRawData,
+): SaarthiLayoutItem[] {
   const layout = raw.layout ?? [];
+
   return layout
     .filter((item) => {
-      const known = KNOWN_WIDGET_IDS.includes(item.id as SaarthiWidgetId);
+      const known = KNOWN_WIDGET_IDS.includes(
+        item.id as SaarthiWidgetId,
+      );
+
       if (!known && import.meta.env.DEV) {
-        console.warn(`[saarthiAdapter] Unknown widget id in layout: "${item.id}"`);
+        console.warn(
+          `[saarthiAdapter] Unknown widget id in layout: "${item.id}"`,
+        );
       }
+
       return known;
     })
     .map((item) => ({
@@ -309,11 +483,9 @@ function mapLayout(raw: SaarthiRawData): SaarthiLayoutItem[] {
     }));
 }
 
-/**
- * Converts the raw Apps Script "experience" payload (response.data) into the
- * SaarthiData shape the existing Saarthi widgets already expect.
- */
-export function adaptSaarthiExperience(raw: SaarthiRawData): SaarthiData {
+export function adaptSaarthiExperience(
+  raw: SaarthiRawData,
+): SaarthiData {
   return {
     schemaVersion: raw.schemaVersion,
     identity: mapIdentity(raw),
