@@ -1,73 +1,94 @@
-import { ArrowDown, ArrowUp, Minus, Trophy } from "lucide-react";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import { WidgetShell } from "../WidgetShell";
 import type { SaarthiRanking } from "@/types/saarthi";
 
 interface Props {
   ranking?: SaarthiRanking | null;
+  size?: "small" | "medium" | "large";
 }
 
-export function LeaderboardWidget({ ranking }: Props) {
-  if (!ranking || ranking.currentRank === null || ranking.currentRank === undefined) {
+export function LeaderboardWidget({
+  ranking,
+}: Props) {
+  if (!ranking) {
     return null;
   }
 
-  const movement = ranking.movement ?? 0;
-  const dir = movement > 0 ? "up" : movement < 0 ? "down" : "flat";
+  const hasRank = isFiniteNumber(
+    ranking.currentRank,
+  );
+
+  if (!hasRank) {
+    return null;
+  }
 
   return (
     <WidgetShell
       title="Cohort Ranking"
-      subtitle={
-        ranking.cohortSize
-          ? `Among ${ranking.cohortSize} experts`
-          : undefined
-      }
+      subtitle="Your position among similar experts"
     >
-      <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <Trophy className="h-5 w-5" />
-        </div>
-        <div className="flex-1">
-          <p className="text-2xl font-bold text-foreground">
-            #{ranking.currentRank}
-            {ranking.cohortSize && (
-              <span className="text-sm font-normal text-muted-foreground">
-                {" "}/ {ranking.cohortSize}
-              </span>
-            )}
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <p className="text-[11px] font-medium text-muted-foreground">
+            Current rank
           </p>
-          {ranking.yesterdayRank !== undefined && ranking.yesterdayRank !== null && (
-            <p className="text-[11px] text-muted-foreground">
-              Yesterday #{ranking.yesterdayRank}
+          <p className="mt-1 text-3xl font-bold tracking-tight text-foreground">
+            #{Math.round(Number(ranking.currentRank))}
+          </p>
+          {isFiniteNumber(ranking.cohortSize) ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              out of {Math.round(Number(ranking.cohortSize))}
             </p>
-          )}
+          ) : null}
         </div>
-        <MovementBadge dir={dir} value={Math.abs(movement)} />
+
+        <Movement movement={ranking.movement} />
       </div>
     </WidgetShell>
   );
 }
 
-function MovementBadge({
-  dir,
-  value,
+function Movement({
+  movement,
 }: {
-  dir: "up" | "down" | "flat";
-  value: number;
+  movement?: number | null;
 }) {
-  const cls =
-    dir === "up"
-      ? "bg-status-strong/10 text-status-strong"
-      : dir === "down"
-        ? "bg-status-critical/10 text-status-critical"
-        : "bg-muted text-muted-foreground";
-  const Icon = dir === "up" ? ArrowUp : dir === "down" ? ArrowDown : Minus;
+  if (!isFiniteNumber(movement)) {
+    return null;
+  }
+
+  const value = Number(movement);
+
+  if (value === 0) {
+    return (
+      <p className="pb-1 text-xs font-semibold text-muted-foreground">
+        No change
+      </p>
+    );
+  }
+
+  const improved = value > 0;
+  const Icon = improved ? ArrowUp : ArrowDown;
+
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${cls}`}
+    <div
+      className={[
+        "mb-1 flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold",
+        improved
+          ? "bg-emerald-500/10 text-emerald-600"
+          : "bg-orange-500/10 text-orange-600",
+      ].join(" ")}
     >
-      <Icon className="h-3 w-3" />
-      {value > 0 ? value : "—"}
-    </span>
+      <Icon className="h-3.5 w-3.5" />
+      {Math.abs(Math.round(value))}
+    </div>
+  );
+}
+
+function isFiniteNumber(value: unknown): boolean {
+  return (
+    value !== null &&
+    value !== undefined &&
+    Number.isFinite(Number(value))
   );
 }
