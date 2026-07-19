@@ -145,7 +145,6 @@ function WidgetRenderer({
       return data.journey ? (
         <PriorityJourneyWidget
           journey={data.journey}
-          size={item.size}
         />
       ) : null;
 
@@ -153,7 +152,6 @@ function WidgetRenderer({
       return data.highlight ? (
         <HighlightWidget
           highlight={data.highlight}
-          size={item.size}
         />
       ) : null;
 
@@ -161,7 +159,6 @@ function WidgetRenderer({
       return data.mantra ? (
         <MantraWidget
           mantra={data.mantra}
-          size={item.size}
         />
       ) : null;
 

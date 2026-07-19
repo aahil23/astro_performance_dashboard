@@ -151,9 +151,6 @@ function DashboardPage() {
 
     navigate({
       to: "/",
-      state: {
-        message: "Your session ended due to inactivity. Please login again.",
-      },
     });
   });
 }, [navigate]);
