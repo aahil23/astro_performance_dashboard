@@ -1,9 +1,6 @@
 import { ExpertProfileCard } from "@/components/dashboard/ExpertProfileCard";
 import type { ApiExpert } from "@/services/dashboardApi";
-import type {
-  SaarthiData,
-  SaarthiLayoutItem,
-} from "@/types/saarthi";
+import type { SaarthiData, SaarthiLayoutItem } from "@/types/saarthi";
 import { EarningsWidget } from "./widgets/EarningsWidget";
 import { FocusWidget } from "./widgets/FocusWidget";
 import { HeroWidget } from "./widgets/HeroWidget";
@@ -37,49 +34,27 @@ function buildProfileExpert(
   };
 }
 
-function getLastUpdated(
-  metadata: SaarthiData["metadata"],
-): string | undefined {
-  if (!metadata) {
-    return undefined;
-  }
-
-  const generatedAtIst = metadata.generatedAtIst;
-
-  return typeof generatedAtIst === "string"
-    ? generatedAtIst
+function getLastUpdated(metadata: SaarthiData["metadata"]): string | undefined {
+  if (!metadata) return undefined;
+  return typeof metadata.generatedAtIst === "string"
+    ? metadata.generatedAtIst
     : undefined;
 }
 
-export function SaarthiDashboard({
-  data,
-  phoneNumber,
-  onLogout,
-}: Props) {
-  const layout: SaarthiLayoutItem[] =
-    data.layout ?? [];
-
-  const expert = buildProfileExpert(
-    data,
-    phoneNumber,
-  );
-
-  const lastUpdated = getLastUpdated(
-    data.metadata,
-  );
+export function SaarthiDashboard({ data, phoneNumber, onLogout }: Props) {
+  const layout: SaarthiLayoutItem[] = data.layout ?? [];
+  const expert = buildProfileExpert(data, phoneNumber);
+  const lastUpdated = getLastUpdated(data.metadata);
 
   return (
-    <main className="mx-auto w-full max-w-[760px] space-y-5 px-4 pb-10 pt-5 sm:px-6">
+    <main className="mx-auto w-full max-w-[760px] space-y-4 px-4 pb-8 pt-4 sm:px-6">
       <ExpertProfileCard
         expert={expert}
         onLogout={onLogout}
         lastUpdated={lastUpdated}
       />
 
-      <HeroWidget
-        identity={data.identity}
-        hero={data.hero}
-      />
+      <HeroWidget identity={data.identity} hero={data.hero} />
 
       {layout.map((item, index) => (
         <WidgetRenderer
@@ -111,64 +86,41 @@ function WidgetRenderer({
 
     case "earnings":
       return data.earnings ? (
-        <EarningsWidget
-          earnings={data.earnings}
-          size={item.size}
-        />
+        <EarningsWidget earnings={data.earnings} size={item.size} />
       ) : null;
 
     case "performance":
       return data.performance ? (
-        <PerformanceWidget
-          performance={data.performance}
-          size={item.size}
-        />
+        <PerformanceWidget performance={data.performance} size={item.size} />
       ) : null;
 
     case "leaderboard":
       return data.ranking ? (
-        <LeaderboardWidget
-          ranking={data.ranking}
-          size={item.size}
-        />
+        <LeaderboardWidget ranking={data.ranking} size={item.size} />
       ) : null;
 
     case "risk_meter":
       return data.risk ? (
-        <RiskMeterWidget
-          risk={data.risk}
-          size={item.size}
-        />
+        <RiskMeterWidget risk={data.risk} size={item.size} />
       ) : null;
 
     case "priority_journey":
       return data.journey ? (
-        <PriorityJourneyWidget
-          journey={data.journey}
-        />
+        <PriorityJourneyWidget journey={data.journey} />
       ) : null;
 
     case "highlight":
       return data.highlight ? (
-        <HighlightWidget
-          highlight={data.highlight}
-        />
+        <HighlightWidget highlight={data.highlight} />
       ) : null;
 
     case "mantra":
-      return data.mantra ? (
-        <MantraWidget
-          mantra={data.mantra}
-        />
-      ) : null;
+      return data.mantra ? <MantraWidget mantra={data.mantra} /> : null;
 
     default:
       if (import.meta.env.DEV) {
-        console.warn(
-          `[SaarthiDashboard] Unknown widget id: ${item.id}`,
-        );
+        console.warn(`[SaarthiDashboard] Unknown widget id: ${item.id}`);
       }
-
       return null;
   }
 }
