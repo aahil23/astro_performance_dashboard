@@ -49,12 +49,19 @@ function MetricCard({ metric }: { metric: SaarthiPerformanceMetric }) {
       <p className="truncate text-[11px] font-semibold text-muted-foreground">
         {title}
       </p>
+
       <p className="mt-1 truncate text-base font-bold leading-none text-foreground">
         {today}
       </p>
+
       <p className="mt-1.5 truncate text-[10px] leading-3 text-muted-foreground">
-        Y {yesterday} · 7d {average7d}
+        <span className="font-medium text-blue-600">Y</span>{" "}
+        <span className="font-semibold">{yesterday}</span>
+        <span className="mx-1">·</span>
+        <span className="font-medium text-blue-600">7D</span>{" "}
+        <span className="font-semibold">{average7d}</span>
       </p>
+
       <p
         className={`mt-1.5 min-h-3 truncate text-[10px] font-semibold leading-3 ${getStatusClass(
           metric.status,
