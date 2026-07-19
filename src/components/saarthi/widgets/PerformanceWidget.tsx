@@ -54,13 +54,17 @@ function MetricCard({ metric }: { metric: SaarthiPerformanceMetric }) {
         {today}
       </p>
 
-      <p className="mt-1.5 truncate text-[10px] leading-3 text-muted-foreground">
-        <span className="font-medium text-blue-600">Y</span>{" "}
-        <span className="font-semibold">{yesterday}</span>
-        <span className="mx-1">·</span>
-        <span className="font-medium text-blue-600">7D</span>{" "}
-        <span className="font-semibold">{average7d}</span>
-      </p>
+      <div className="mt-1.5 space-y-0.5 text-[10px] leading-3 text-muted-foreground">
+        <p className="whitespace-nowrap">
+          <span className="font-medium text-blue-600">Y</span>{" "}
+          <span className="font-semibold">{yesterday}</span>
+        </p>
+
+        <p className="whitespace-nowrap">
+          <span className="font-medium text-blue-600">7D</span>{" "}
+          <span className="font-semibold">{average7d}</span>
+        </p>
+      </div>
 
       <p
         className={`mt-1.5 min-h-3 truncate text-[10px] font-semibold leading-3 ${getStatusClass(
