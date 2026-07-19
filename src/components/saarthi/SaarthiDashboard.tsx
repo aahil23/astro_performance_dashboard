@@ -103,6 +103,7 @@ function WidgetRenderer({
     case "focus":
       return data.focus ? (
         <FocusWidget
+          expertId={data.identity.expertId}
           focus={data.focus}
           size={item.size}
         />
