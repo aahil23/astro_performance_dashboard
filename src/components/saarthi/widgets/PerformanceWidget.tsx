@@ -41,13 +41,7 @@ export function PerformanceWidget({
     >
       <div className="grid grid-cols-3 gap-1.5">
         {metrics.slice(0, 6).map((metric) => (
-          <MetricCard
-            key={metric.key}
-            metric={metric}
-            featured={
-              metric.key === performance?.featuredKey
-            }
-          />
+          <MetricCard key={metric.key} metric={metric} />
         ))}
       </div>
     </WidgetShell>
@@ -56,10 +50,8 @@ export function PerformanceWidget({
 
 function MetricCard({
   metric,
-  featured,
 }: {
   metric: SaarthiPerformanceMetric;
-  featured: boolean;
 }) {
   const title = getCompactLabel(metric);
   const today = formatMetricValue(
@@ -76,20 +68,9 @@ function MetricCard({
   );
   const status = formatStatus(metric.status);
 
-  const ratingMeta =
-    metric.key === "rating"
-      ? buildRatingMeta(metric)
-      : null;
-
   return (
     <article
-      className={[
-        "min-w-0 rounded-xl border px-2 py-2",
-        "bg-background/75",
-        featured
-          ? "border-primary/30 ring-1 ring-primary/10"
-          : "border-border/60",
-      ].join(" ")}
+      className="min-w-0 rounded-xl border border-border/60 bg-background/75 px-2 py-2"
     >
       <p className="truncate text-[10px] font-semibold leading-3 text-muted-foreground">
         {title}
@@ -99,15 +80,9 @@ function MetricCard({
         {today}
       </p>
 
-      {ratingMeta ? (
-        <p className="mt-1 truncate text-[9px] leading-3 text-muted-foreground">
-          {ratingMeta}
-        </p>
-      ) : (
-        <p className="mt-1 truncate text-[9px] leading-3 text-muted-foreground">
-          Y {yesterday} · 7d {average7d}
-        </p>
-      )}
+      <p className="mt-1 truncate text-[9px] leading-3 text-muted-foreground">
+        Y {yesterday} · 7d {average7d}
+      </p>
 
       {status ? (
         <p
