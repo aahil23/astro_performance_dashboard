@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   ChevronDown,
@@ -7,12 +7,18 @@ import {
   X,
 } from "lucide-react";
 import { WidgetShell } from "../WidgetShell";
+import {
+  hasCoachingActions,
+  selectDailyCoachingActions,
+} from "@/lib/saarthiCoaching";
 import type {
+  SaarthiCoachingAction,
   SaarthiFocus,
   SaarthiFocusItem,
 } from "@/types/saarthi";
 
 interface Props {
+  expertId: number | string;
   focus?: SaarthiFocus | null;
   size?: "small" | "medium" | "large";
 }
@@ -31,13 +37,8 @@ type FocusMetricType =
   | "general"
   | string;
 
-interface GuideContent {
-  title: string;
-  intro: string;
-  steps: string[];
-}
-
 export function FocusWidget({
+  expertId,
   focus,
 }: Props) {
   const primary = focus?.primary ?? null;
@@ -51,14 +52,9 @@ export function FocusWidget({
   );
 
   const [guideItem, setGuideItem] =
-    useState<SaarthiFocusItem | null>(
-      null,
-    );
+    useState<SaarthiFocusItem | null>(null);
 
-  if (
-    !primary &&
-    secondary.length === 0
-  ) {
+  if (!primary && secondary.length === 0) {
     return null;
   }
 
@@ -66,50 +62,40 @@ export function FocusWidget({
     <>
       <WidgetShell
         title="Today's Focus"
-        subtitle="Your most important actions for today"
+        subtitle="What will move your priority forward"
         tone="primary"
       >
         {primary ? (
           <PrimaryFocus
             item={primary}
-            onOpenGuide={() =>
-              setGuideItem(primary)
-            }
+            onOpenGuide={() => setGuideItem(primary)}
           />
         ) : null}
 
         {secondary.length > 0 ? (
-          <div className="mt-4">
-            <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="mt-4 border-t border-border/60 pt-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Also focus on
             </p>
 
-            <ul className="space-y-2">
-              {secondary.map(
-                (item, index) => (
-                  <SecondaryFocus
-                    key={
-                      item.id ??
-                      `${item.type}-${index}`
-                    }
-                    item={item}
-                    onOpenGuide={() =>
-                      setGuideItem(item)
-                    }
-                  />
-                ),
-              )}
-            </ul>
+            <div className="overflow-hidden rounded-xl border border-border/60 bg-background/70">
+              {secondary.map((item, index) => (
+                <SecondaryFocus
+                  key={item.id || item.type || index}
+                  item={item}
+                  onOpenGuide={() => setGuideItem(item)}
+                />
+              ))}
+            </div>
           </div>
         ) : null}
       </WidgetShell>
 
       {guideItem ? (
         <FocusGuideSheet
+          expertId={expertId}
           item={guideItem}
-          onClose={() =>
-            setGuideItem(null)
-          }
+          onClose={() => setGuideItem(null)}
         />
       ) : null}
     </>
@@ -123,105 +109,66 @@ function PrimaryFocus({
   item: SaarthiFocusItem;
   onOpenGuide: () => void;
 }) {
-  const metricType =
-    getMetricType(item);
-
-  const valueSummary =
-    buildValueSummary(
-      item,
-      metricType,
-    );
-
-  const statusLabel =
-    formatStatus(item.status);
-
-  const actionableTitle =
-    getActionTitle(
-      item,
-      metricType,
-    );
-
-  const actionableBody =
-    getActionBody(
-      item,
-      metricType,
-    );
+  const metricType = getMetricType(item);
+  const valueSummary = buildValueSummary(item, metricType);
+  const statusLabel = formatStatus(item.status);
+  const actionableTitle = getActionTitle(item, metricType);
+  const actionableBody = item.body || null;
+  const canOpenGuide = hasCoachingActions(item);
 
   return (
-    <article className="rounded-2xl border border-primary/15 bg-card p-4 shadow-sm">
+    <div className="rounded-xl border border-primary/15 bg-background/70 p-4">
       <div className="flex items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <Target className="h-5 w-5" />
+        <div className="mt-0.5 rounded-lg bg-primary/10 p-2 text-primary">
+          <Target className="h-4 w-4" />
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <div className="min-w-0">
-              <p className="text-xs font-medium text-muted-foreground">
-                {getMetricHeading(
-                  metricType,
-                )}
-              </p>
-
-              <h3 className="mt-0.5 text-base font-semibold leading-snug text-foreground">
-                {actionableTitle}
-              </h3>
-            </div>
-
-            {statusLabel ? (
-              <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
-                {statusLabel}
-              </span>
-            ) : null}
-          </div>
-
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            {actionableBody}
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+            {getMetricHeading(metricType)}
           </p>
 
+          <h4 className="mt-1 text-base font-semibold leading-snug text-foreground">
+            {actionableTitle}
+          </h4>
+
+          {statusLabel ? (
+            <span className="mt-2 inline-flex rounded-full bg-muted px-2 py-1 text-[11px] font-medium text-muted-foreground">
+              {statusLabel}
+            </span>
+          ) : null}
+
+          {actionableBody ? (
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              {actionableBody}
+            </p>
+          ) : null}
+
           {valueSummary ? (
-            <div className="mt-3 grid grid-cols-2 gap-2">
+            <div className="mt-4 grid grid-cols-2 gap-2">
               {valueSummary.current ? (
-                <MetricValue
-                  label={
-                    valueSummary
-                      .current.label
-                  }
-                  value={
-                    valueSummary
-                      .current.value
-                  }
-                />
+                <MetricValue {...valueSummary.current} />
               ) : null}
 
               {valueSummary.target ? (
-                <MetricValue
-                  label={
-                    valueSummary
-                      .target.label
-                  }
-                  value={
-                    valueSummary
-                      .target.value
-                  }
-                />
+                <MetricValue {...valueSummary.target} />
               ) : null}
             </div>
           ) : null}
 
-          <button
-            type="button"
-            onClick={onOpenGuide}
-            className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          >
-            {item.ctaLabel ||
-              "Show Me How"}
-
-            <ArrowRight className="h-4 w-4" />
-          </button>
+          {canOpenGuide ? (
+            <button
+              type="button"
+              onClick={onOpenGuide}
+              className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              {item.ctaLabel || "Show Me How"}
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          ) : null}
         </div>
       </div>
-    </article>
+    </div>
   );
 }
 
@@ -232,50 +179,25 @@ function SecondaryFocus({
   item: SaarthiFocusItem;
   onOpenGuide: () => void;
 }) {
-  const [expanded, setExpanded] =
-    useState(false);
-
-  const metricType =
-    getMetricType(item);
-
-  const valueSummary =
-    buildValueSummary(
-      item,
-      metricType,
-    );
-
-  const title =
-    getActionTitle(
-      item,
-      metricType,
-    );
-
-  const body =
-    getActionBody(
-      item,
-      metricType,
-    );
+  const [expanded, setExpanded] = useState(false);
+  const metricType = getMetricType(item);
+  const valueSummary = buildValueSummary(item, metricType);
+  const title = getActionTitle(item, metricType);
+  const canOpenGuide = hasCoachingActions(item);
 
   return (
-    <li className="overflow-hidden rounded-xl border border-border bg-card">
+    <div className="border-b border-border/60 last:border-b-0">
       <button
         type="button"
-        onClick={() =>
-          setExpanded(
-            current => !current,
-          )
-        }
+        onClick={() => setExpanded((current) => !current)}
         className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         aria-expanded={expanded}
       >
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-            {getMetricHeading(
-              metricType,
-            )}
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            {getMetricHeading(metricType)}
           </p>
-
-          <p className="mt-0.5 text-sm font-semibold leading-snug text-foreground">
+          <p className="mt-0.5 truncate text-sm font-medium text-foreground">
             {title}
           </p>
         </div>
@@ -288,141 +210,169 @@ function SecondaryFocus({
       </button>
 
       {expanded ? (
-        <div className="border-t border-border px-4 pb-4 pt-3">
-          <p className="text-sm leading-6 text-muted-foreground">
-            {body}
-          </p>
+        <div className="px-4 pb-4">
+          {item.body ? (
+            <p className="text-sm leading-6 text-muted-foreground">
+              {item.body}
+            </p>
+          ) : null}
 
           {valueSummary ? (
             <div className="mt-3 grid grid-cols-2 gap-2">
               {valueSummary.current ? (
-                <MetricValue
-                  label={
-                    valueSummary
-                      .current.label
-                  }
-                  value={
-                    valueSummary
-                      .current.value
-                  }
-                />
+                <MetricValue {...valueSummary.current} />
               ) : null}
 
               {valueSummary.target ? (
-                <MetricValue
-                  label={
-                    valueSummary
-                      .target.label
-                  }
-                  value={
-                    valueSummary
-                      .target.value
-                  }
-                />
+                <MetricValue {...valueSummary.target} />
               ) : null}
             </div>
           ) : null}
 
-          <button
-            type="button"
-            onClick={onOpenGuide}
-            className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          >
-            {item.ctaLabel ||
-              "Show Me How"}
-
-            <ArrowRight className="h-4 w-4" />
-          </button>
+          {canOpenGuide ? (
+            <button
+              type="button"
+              onClick={onOpenGuide}
+              className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-lg border border-primary/30 px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              {item.ctaLabel || "Show Me How"}
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          ) : null}
         </div>
       ) : null}
-    </li>
+    </div>
   );
 }
 
 function FocusGuideSheet({
+  expertId,
   item,
   onClose,
 }: {
+  expertId: number | string;
   item: SaarthiFocusItem;
   onClose: () => void;
 }) {
-  const type =
-    getMetricType(item);
+  const type = getMetricType(item);
 
-  const guide =
-    getGuideContent(type);
+  const actions = useMemo(
+    () => selectDailyCoachingActions(expertId, item, 3),
+    [expertId, item],
+  );
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  if (actions.length === 0) {
+    return null;
+  }
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-3 pb-3 sm:items-center"
-      role="dialog"
-      aria-modal="true"
-      aria-label={guide.title}
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 px-0 sm:items-center sm:px-4"
+      role="presentation"
       onClick={onClose}
     >
-      <div
-        className="w-full max-w-md rounded-[24px] bg-background p-5 shadow-2xl"
-        onClick={event =>
-          event.stopPropagation()
-        }
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="saarthi-coaching-title"
+        className="max-h-[88vh] w-full max-w-[620px] overflow-y-auto rounded-t-3xl bg-background p-5 shadow-2xl sm:rounded-3xl sm:p-6"
+        onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-3">
+        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-muted sm:hidden" />
+
+        <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-              {
-                getMetricHeading(
-                  type,
-                )
-              }
+              {getMetricHeading(type)}
             </p>
-
-            <h3 className="mt-1 text-xl font-bold text-foreground">
-              {guide.title}
+            <h3
+              id="saarthi-coaching-title"
+              className="mt-1 text-xl font-semibold text-foreground"
+            >
+              What to do today
             </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Try these three actions during your next consultations.
+            </p>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            aria-label="Close"
+            aria-label="Close coaching guide"
+            className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          {guide.intro}
-        </p>
-
-        <ol className="mt-4 space-y-3">
-          {guide.steps.map(
-            (step, index) => (
-              <li
-                key={step}
-                className="flex gap-3 rounded-xl bg-muted/50 p-3"
-              >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                  {index + 1}
-                </span>
-
-                <p className="pt-0.5 text-sm leading-5 text-foreground">
-                  {step}
-                </p>
-              </li>
-            ),
-          )}
+        <ol className="mt-5 space-y-3">
+          {actions.map((action, index) => (
+            <CoachingActionRow
+              key={action.id}
+              action={action}
+              index={index}
+            />
+          ))}
         </ol>
 
         <button
           type="button"
           onClick={onClose}
-          className="mt-5 min-h-11 w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
+          className="mt-6 min-h-11 w-full rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           Got It
         </button>
-      </div>
+      </section>
     </div>
+  );
+}
+
+function CoachingActionRow({
+  action,
+  index,
+}: {
+  action: SaarthiCoachingAction;
+  index: number;
+}) {
+  return (
+    <li className="flex gap-3 rounded-xl border border-border/70 bg-muted/25 p-4">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+        {index + 1}
+      </span>
+
+      <div className="min-w-0">
+        {action.category ? (
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            {toTitleCase(action.category)}
+          </p>
+        ) : null}
+
+        <p className="mt-1 text-sm leading-6 text-foreground">
+          {action.text}
+        </p>
+      </div>
+    </li>
   );
 }
 
@@ -434,11 +384,10 @@ function MetricValue({
   value: string;
 }) {
   return (
-    <div className="rounded-xl bg-muted/50 px-3 py-2.5">
+    <div className="rounded-lg bg-muted/50 px-3 py-2">
       <p className="text-[11px] font-medium text-muted-foreground">
         {label}
       </p>
-
       <p className="mt-0.5 text-sm font-semibold text-foreground">
         {value}
       </p>
@@ -449,272 +398,52 @@ function MetricValue({
 function getMetricType(
   item: SaarthiFocusItem,
 ): FocusMetricType {
-  return String(
-    item.type || "general",
-  )
+  return String(item.type || item.id || "general")
     .trim()
     .toLowerCase();
 }
 
-function getMetricHeading(
-  type: FocusMetricType,
-): string {
-  const headings: Record<
-    string,
-    string
-  > = {
-    talk_time:
-      "Average Talk Time",
-    pickup:
-      "Pickup Rate",
-    availability:
-      "Online Time",
-    busy_time:
-      "Busy Time",
-    utilisation:
-      "Utilisation",
-    repeat:
-      "Repeat Users",
-    loyal:
-      "Loyal Users",
-    missed_requests:
-      "Missed Requests",
-    rank:
-      "Cohort Ranking",
-    earnings:
-      "Earnings",
-    general:
-      "Performance",
+function getMetricHeading(type: FocusMetricType): string {
+  const headings: Record<string, string> = {
+    talk_time: "Average Talk Time",
+    pickup: "Pickup Rate",
+    availability: "Online Time",
+    busy_time: "Busy Time",
+    utilisation: "Utilisation",
+    repeat: "Repeat Users",
+    loyal: "Loyal Users",
+    missed_requests: "Missed Requests",
+    rank: "Cohort Ranking",
+    earnings: "Earnings",
+    general: "Performance",
   };
 
-  return (
-    headings[type] ||
-    toTitleCase(type)
-  );
+  return headings[type] || toTitleCase(type);
 }
 
 function getActionTitle(
   item: SaarthiFocusItem,
   type: FocusMetricType,
 ): string {
-  const titles: Record<
-    string,
-    string
-  > = {
-    talk_time:
-      "Keep consultations useful for longer",
-    pickup:
-      "Pick more booking requests",
-    availability:
-      "Stay online during demand hours",
-    busy_time:
-      "Increase your active consultation time",
-    utilisation:
-      "Convert more online time into consultations",
-    repeat:
-      "Bring more users back",
-    loyal:
-      "Build stronger user trust",
-    missed_requests:
-      "Reduce missed booking requests",
-    rank:
-      "Improve your position in the cohort",
-    earnings:
-      "Increase your daily earnings",
-    general:
-      "Improve today's performance",
+  if (item.title && item.title !== "Today's Focus") {
+    return item.title;
+  }
+
+  const titles: Record<string, string> = {
+    talk_time: "Keep consultations useful for longer",
+    pickup: "Pick more booking requests",
+    availability: "Stay online during demand hours",
+    busy_time: "Increase your active consultation time",
+    utilisation: "Convert more online time into consultations",
+    repeat: "Bring more users back",
+    loyal: "Build stronger user trust",
+    missed_requests: "Reduce missed booking requests",
+    rank: "Improve your position in the cohort",
+    earnings: "Increase your daily earnings",
+    general: "Improve today's performance",
   };
 
-  return (
-    titles[type] ||
-    item.title ||
-    "Improve this metric"
-  );
-}
-
-function getActionBody(
-  item: SaarthiFocusItem,
-  type: FocusMetricType,
-): string {
-  const bodies: Record<
-    string,
-    string
-  > = {
-    talk_time:
-      "Ask one more relevant question and give a clear answer before ending the consultation.",
-    pickup:
-      "Keep the app open and respond quickly when a booking request comes in.",
-    availability:
-      "Add more online time during the hours when users are most active.",
-    busy_time:
-      "Stay available and focus on starting more completed consultations.",
-    utilisation:
-      "Reduce idle online time by responding quickly and staying active during high-demand hours.",
-    repeat:
-      "End each consultation with a clear next step so users know when to return.",
-    loyal:
-      "Give specific, useful guidance and remember the user's main concern.",
-    missed_requests:
-      "Keep notifications on and avoid leaving the app during your available hours.",
-    rank:
-      "Improve the metrics that matter most today. Your rank will improve as your overall performance improves.",
-    earnings:
-      "Increase online time, pickup and consultation quality to grow earnings steadily.",
-    general:
-      "Focus on one clear improvement today and repeat it consistently.",
-  };
-
-  return (
-    bodies[type] ||
-    item.body ||
-    "Work on this metric today."
-  );
-}
-
-function getGuideContent(
-  type: FocusMetricType,
-): GuideContent {
-  const guides: Record<
-    string,
-    GuideContent
-  > = {
-    talk_time: {
-      title:
-        "Improve Average Talk Time",
-      intro:
-        "Keep the conversation useful. Do not extend it without giving value.",
-      steps: [
-        "Ask one relevant follow-up question about the user's current situation.",
-        "Give one clear insight with a simple reason before moving to the next point.",
-        "End only after confirming that the user's main question has been answered.",
-      ],
-    },
-
-    pickup: {
-      title:
-        "Improve Pickup Rate",
-      intro:
-        "Fast response helps you receive more completed consultations.",
-      steps: [
-        "Keep notifications and sound on while you are marked available.",
-        "Open booking requests quickly instead of switching between apps.",
-        "Go offline when you cannot take requests so fewer bookings are missed.",
-      ],
-    },
-
-    availability: {
-      title:
-        "Increase Online Time",
-      intro:
-        "More useful online time gives you more chances to receive bookings.",
-      steps: [
-        "Plan fixed online slots instead of logging in for many short periods.",
-        "Prioritise morning and evening demand hours.",
-        "Stay online only when you can respond quickly to new requests.",
-      ],
-    },
-
-    busy_time: {
-      title:
-        "Increase Busy Time",
-      intro:
-        "Busy time grows when more of your online time turns into completed consultations.",
-      steps: [
-        "Stay online during the hours where you usually receive bookings.",
-        "Pick requests quickly and avoid missing the first response window.",
-        "Use strong consultation quality so users continue for longer.",
-      ],
-    },
-
-    utilisation: {
-      title:
-        "Improve Utilisation",
-      intro:
-        "Use your online hours more effectively.",
-      steps: [
-        "Be online during high-demand hours rather than low-demand periods.",
-        "Respond quickly to booking requests.",
-        "Reduce long idle periods by adjusting availability when you are busy elsewhere.",
-      ],
-    },
-
-    repeat: {
-      title:
-        "Increase Repeat Users",
-      intro:
-        "Users return when they receive clear value and know what to do next.",
-      steps: [
-        "Summarise the main guidance before ending.",
-        "Give a practical next step that the user can follow.",
-        "Tell the user when it would be useful to reconnect without making false promises.",
-      ],
-    },
-
-    loyal: {
-      title:
-        "Build Loyal Users",
-      intro:
-        "Loyal users come back because they trust the quality and consistency of your guidance.",
-      steps: [
-        "Listen carefully and refer to the user's exact concern.",
-        "Avoid generic answers and give one specific useful insight.",
-        "Keep your guidance consistent when the same user returns.",
-      ],
-    },
-
-    missed_requests: {
-      title:
-        "Reduce Missed Requests",
-      intro:
-        "Fewer missed requests can improve pickup and visibility.",
-      steps: [
-        "Keep notifications enabled while you are available.",
-        "Do not remain available when you cannot respond.",
-        "Check network quality before starting your online slot.",
-      ],
-    },
-
-    rank: {
-      title:
-        "Improve Your Rank",
-      intro:
-        "Rank improves when your underlying performance metrics improve.",
-      steps: [
-        "Work first on the primary focus shown in this dashboard.",
-        "Maintain strong pickup and availability.",
-        "Improve consultation quality and repeat-user outcomes consistently.",
-      ],
-    },
-
-    earnings: {
-      title:
-        "Increase Earnings",
-      intro:
-        "Earnings grow through better availability, pickup and consultation quality.",
-      steps: [
-        "Add online time during high-demand hours.",
-        "Pick more requests and reduce missed bookings.",
-        "Improve consultation quality so users stay longer and return.",
-      ],
-    },
-
-    general: {
-      title:
-        "Improve Today's Performance",
-      intro:
-        "Choose one action and repeat it consistently today.",
-      steps: [
-        "Review your current and target values.",
-        "Focus on the single biggest gap first.",
-        "Check the dashboard again after your next set of consultations.",
-      ],
-    },
-  };
-
-  return (
-    guides[type] ||
-    guides.general
-  );
+  return titles[type] || "Improve this metric";
 }
 
 function buildValueSummary(
@@ -722,68 +451,37 @@ function buildValueSummary(
   type: FocusMetricType,
 ):
   | {
-      current?: {
-        label: string;
-        value: string;
-      };
-      target?: {
-        label: string;
-        value: string;
-      };
+      current?: { label: string; value: string };
+      target?: { label: string; value: string };
     }
   | null {
-  const current =
-    formatMetricValue(
-      item.currentValue,
-      type,
-    );
+  const current = formatMetricValue(item.currentValue, type);
+  const target = formatMetricValue(item.targetValue, type);
 
-  const target =
-    formatMetricValue(
-      item.targetValue,
-      type,
-    );
-
-  if (
-    !current &&
-    !target
-  ) {
+  if (!current && !target) {
     return null;
   }
 
   if (type === "rank") {
     return {
       current: current
-        ? {
-            label:
-              "Current rank",
-            value: current,
-          }
+        ? { label: "Current rank", value: current }
         : undefined,
-
       target: {
-        label:
-          "Today's goal",
-        value:
-          "Improve key metrics",
+        label: "Today's goal",
+        value: "Improve key metrics",
       },
     };
   }
 
   return {
     current: current
-      ? {
-          label:
-            "Current",
-          value: current,
-        }
+      ? { label: "Current", value: current }
       : undefined,
-
     target: target
       ? {
           label:
-            type ===
-            "missed_requests"
+            type === "missed_requests"
               ? "Maximum"
               : "Target",
           value: target,
@@ -804,182 +502,106 @@ function formatMetricValue(
     return null;
   }
 
-  const numericValue =
-    Number(value);
+  const numericValue = Number(value);
 
-  if (
-    !Number.isFinite(
-      numericValue,
-    )
-  ) {
+  if (!Number.isFinite(numericValue)) {
     return String(value);
   }
 
   switch (type) {
     case "talk_time":
-      return formatSeconds(
-        numericValue,
-      );
+      return formatSeconds(numericValue);
 
     case "availability":
     case "busy_time":
-      return formatMinutes(
-        numericValue,
-      );
+      return formatMinutes(numericValue);
 
     case "pickup":
     case "utilisation":
     case "repeat":
     case "loyal":
-      return `${formatNumber(
-        numericValue,
-      )}%`;
+      return `${formatNumber(numericValue)}%`;
 
     case "earnings":
-      return new Intl.NumberFormat(
-        "en-IN",
-        {
-          style: "currency",
-          currency: "INR",
-          maximumFractionDigits: 0,
-        },
-      ).format(
-        numericValue,
-      );
+      return new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 0,
+      }).format(numericValue);
 
     case "rank":
-      return `#${Math.max(
-        1,
-        Math.round(
-          numericValue,
-        ),
-      )}`;
+      return `#${Math.max(1, Math.round(numericValue))}`;
 
     default:
-      return formatNumber(
-        numericValue,
-      );
+      return formatNumber(numericValue);
   }
 }
 
-function formatSeconds(
-  seconds: number,
-): string {
-  const rounded =
-    Math.max(
-      0,
-      Math.round(seconds),
-    );
-
-  const minutes =
-    Math.floor(
-      rounded / 60,
-    );
-
-  const remainingSeconds =
-    rounded % 60;
+function formatSeconds(seconds: number): string {
+  const rounded = Math.max(0, Math.round(seconds));
+  const minutes = Math.floor(rounded / 60);
+  const remainingSeconds = rounded % 60;
 
   if (minutes === 0) {
     return `${remainingSeconds}s`;
   }
 
-  if (
-    remainingSeconds === 0
-  ) {
+  if (remainingSeconds === 0) {
     return `${minutes}m`;
   }
 
   return `${minutes}m ${remainingSeconds}s`;
 }
 
-function formatMinutes(
-  minutes: number,
-): string {
-  const rounded =
-    Math.max(
-      0,
-      Math.round(minutes),
-    );
-
-  const hours =
-    Math.floor(
-      rounded / 60,
-    );
-
-  const remainingMinutes =
-    rounded % 60;
+function formatMinutes(minutes: number): string {
+  const rounded = Math.max(0, Math.round(minutes));
+  const hours = Math.floor(rounded / 60);
+  const remainingMinutes = rounded % 60;
 
   if (hours === 0) {
     return `${remainingMinutes}m`;
   }
 
-  if (
-    remainingMinutes === 0
-  ) {
+  if (remainingMinutes === 0) {
     return `${hours}h`;
   }
 
   return `${hours}h ${remainingMinutes}m`;
 }
 
-function formatNumber(
-  value: number,
-): string {
-  return new Intl.NumberFormat(
-    "en-IN",
-    {
-      maximumFractionDigits: 1,
-    },
-  ).format(value);
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat("en-IN", {
+    maximumFractionDigits: 1,
+  }).format(value);
 }
 
-function formatStatus(
-  status: unknown,
-): string | null {
+function formatStatus(status: unknown): string | null {
   if (!status) {
     return null;
   }
 
-  const normalized =
-    String(status)
-      .trim()
-      .toLowerCase();
+  const normalized = String(status)
+    .trim()
+    .toLowerCase();
 
-  const labels: Record<
-    string,
-    string
-  > = {
-    above_target:
-      "On track",
-    improving:
-      "Improving",
-    stable:
-      "Stable",
-    needs_attention:
-      "Needs attention",
-    insufficient_data:
-      "Not enough data",
+  const labels: Record<string, string> = {
+    above_target: "On track",
+    improving: "Improving",
+    stable: "Stable",
+    needs_attention: "Needs attention",
+    insufficient_data: "Not enough data",
   };
 
   return (
     labels[normalized] ||
-    toTitleCase(
-      normalized.replace(
-        /_/g,
-        " ",
-      ),
-    )
+    toTitleCase(normalized.replace(/_/g, " "))
   );
 }
 
-function toTitleCase(
-  value: string,
-): string {
+function toTitleCase(value: string): string {
   return value
     .replace(/_/g, " ")
-    .replace(
-      /\b\w/g,
-      character =>
-        character.toUpperCase(),
+    .replace(/\b\w/g, (character) =>
+      character.toUpperCase(),
     );
 }
