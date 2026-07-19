@@ -50,38 +50,26 @@ function secondsToDisplay(
   const minutes = Math.floor(numericValue / 60);
   const seconds = Math.round(numericValue % 60);
 
-  return `${minutes}m ${seconds
-    .toString()
-    .padStart(2, "0")}s`;
+  return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
 }
 
-function mapIdentity(
-  raw: SaarthiRawData,
-): SaarthiIdentity {
+function mapIdentity(raw: SaarthiRawData): SaarthiIdentity {
   const identity = raw.identity;
 
   return {
     expertId: identity.expertId,
     expertName: identity.expertName,
-    primaryLanguage:
-      identity.primaryLanguage ?? undefined,
-    currentPriority:
-      identity.currentPriority ?? undefined,
-    nextPriority:
-      identity.nextPriority ?? undefined,
-    variant:
-      identity.variant ?? undefined,
+    primaryLanguage: identity.primaryLanguage ?? undefined,
+    currentPriority: identity.currentPriority ?? undefined,
+    nextPriority: identity.nextPriority ?? undefined,
+    variant: identity.variant ?? undefined,
   };
 }
 
-function mapHero(
-  raw: SaarthiRawData,
-): SaarthiHero | null {
+function mapHero(raw: SaarthiRawData): SaarthiHero | null {
   const hero = raw.hero;
 
-  if (!hero) {
-    return null;
-  }
+  if (!hero) return null;
 
   return {
     greeting: hero.greeting ?? undefined,
@@ -90,53 +78,35 @@ function mapHero(
     motivation: hero.motivation ?? undefined,
     progressPercent: hero.progressPct ?? null,
     currentAtt:
-      hero.currentDisplay ??
-      secondsToDisplay(hero.currentTtpuSec),
+      hero.currentDisplay ?? secondsToDisplay(hero.currentTtpuSec),
     targetAtt:
-      hero.targetDisplay ??
-      secondsToDisplay(hero.targetTtpuSec),
-    gap:
-      hero.gapDisplay ??
-      secondsToDisplay(hero.gapSec),
+      hero.targetDisplay ?? secondsToDisplay(hero.targetTtpuSec),
+    gap: hero.gapDisplay ?? secondsToDisplay(hero.gapSec),
   };
 }
 
 function mapCoaching(
   coaching?: SaarthiRawCoaching | null,
 ): SaarthiCoaching | null {
-  if (!coaching?.metricKey) {
-    return null;
-  }
+  if (!coaching?.metricKey) return null;
 
   const actions = (coaching.actions ?? [])
-    .filter(
-      (action) =>
-        Boolean(action?.id) &&
-        Boolean(action?.text),
-    )
+    .filter((action) => Boolean(action?.id) && Boolean(action?.text))
     .map((action) => ({
       id: String(action.id),
-      category:
-        action.category ?? undefined,
+      category: action.category ?? undefined,
       text: String(action.text),
     }));
 
-  if (actions.length === 0) {
-    return null;
-  }
-
-  return {
-    metricKey: coaching.metricKey,
-    actions,
-  };
+  return actions.length
+    ? { metricKey: coaching.metricKey, actions }
+    : null;
 }
 
 function mapFocusItem(
   item: SaarthiRawFocusItem | null | undefined,
 ): SaarthiFocusItem | null {
-  if (!item) {
-    return null;
-  }
+  if (!item) return null;
 
   return {
     id: item.type ?? undefined,
@@ -144,8 +114,7 @@ function mapFocusItem(
     title: item.title ?? undefined,
     body: item.body ?? undefined,
     currentValue: item.currentValue ?? null,
-    comparisonValue:
-      item.comparisonValue ?? null,
+    comparisonValue: item.comparisonValue ?? null,
     targetValue: item.targetValue ?? null,
     status: item.status ?? null,
     ctaLabel: item.ctaLabel ?? undefined,
@@ -154,62 +123,41 @@ function mapFocusItem(
   };
 }
 
-function mapFocus(
-  raw: SaarthiRawData,
-): SaarthiFocus | null {
+function mapFocus(raw: SaarthiRawData): SaarthiFocus | null {
   const focus = raw.focus;
 
-  if (!focus) {
-    return null;
-  }
+  if (!focus) return null;
 
   return {
     primary: mapFocusItem(focus.primary),
     secondary: (focus.secondary ?? [])
       .map(mapFocusItem)
-      .filter(
-        (item): item is SaarthiFocusItem =>
-          item !== null,
-      ),
+      .filter((item): item is SaarthiFocusItem => item !== null),
   };
 }
 
-function mapEarnings(
-  raw: SaarthiRawData,
-): SaarthiEarnings | null {
+function mapEarnings(raw: SaarthiRawData): SaarthiEarnings | null {
   const earnings = raw.earnings;
 
-  if (!earnings) {
-    return null;
-  }
+  if (!earnings) return null;
 
   return {
     today: earnings.today ?? null,
     yesterday: earnings.yesterday ?? null,
     average7d: earnings.sevenDayAvg ?? null,
-    currentBenchmark:
-      earnings.currentPriorityBenchmark ?? null,
-    nextBenchmark:
-      earnings.nextPriorityBenchmark ?? null,
-    unlockDelta:
-      earnings.unlockDelta ?? null,
-    potentialLoss:
-      earnings.potentialLoss ?? null,
-    currentPriorityLabel:
-      raw.identity.currentPriority ?? undefined,
-    nextPriorityLabel:
-      raw.identity.nextPriority ?? undefined,
+    currentBenchmark: earnings.currentPriorityBenchmark ?? null,
+    nextBenchmark: earnings.nextPriorityBenchmark ?? null,
+    unlockDelta: earnings.unlockDelta ?? null,
+    potentialLoss: earnings.potentialLoss ?? null,
+    currentPriorityLabel: raw.identity.currentPriority ?? undefined,
+    nextPriorityLabel: raw.identity.nextPriority ?? undefined,
   };
 }
 
-function mapPerformance(
-  raw: SaarthiRawData,
-): SaarthiPerformance | null {
+function mapPerformance(raw: SaarthiRawData): SaarthiPerformance | null {
   const performance = raw.performance;
 
-  if (!performance) {
-    return null;
-  }
+  if (!performance) return null;
 
   const metrics: SaarthiPerformanceMetric[] = [];
 
@@ -217,16 +165,11 @@ function mapPerformance(
     metrics.push({
       key: "talk_time",
       label: "Talk Time",
-      today:
-        performance.talkTime.today ?? null,
-      yesterday:
-        performance.talkTime.yesterday ?? null,
-      average7d:
-        performance.talkTime.sevenDayAvg ?? null,
-      target:
-        performance.talkTime.target ?? null,
-      status:
-        performance.talkTime.status ?? null,
+      today: performance.talkTime.today ?? null,
+      yesterday: performance.talkTime.yesterday ?? null,
+      average7d: performance.talkTime.sevenDayAvg ?? null,
+      target: performance.talkTime.target ?? null,
+      status: performance.talkTime.status ?? null,
       format: "seconds",
     });
   }
@@ -235,16 +178,11 @@ function mapPerformance(
     metrics.push({
       key: "pickup",
       label: "Pickup Rate",
-      today:
-        performance.pickup.today ?? null,
-      yesterday:
-        performance.pickup.yesterday ?? null,
-      average7d:
-        performance.pickup.sevenDayAvg ?? null,
-      target:
-        performance.pickup.target ?? null,
-      status:
-        performance.pickup.status ?? null,
+      today: performance.pickup.today ?? null,
+      yesterday: performance.pickup.yesterday ?? null,
+      average7d: performance.pickup.sevenDayAvg ?? null,
+      target: performance.pickup.target ?? null,
+      status: performance.pickup.status ?? null,
       format: "percent",
     });
   }
@@ -253,54 +191,23 @@ function mapPerformance(
     metrics.push({
       key: "availability",
       label: "Online Time",
-      today:
-        performance.availability
-          .onlineTodayMin ?? null,
-      yesterday:
-        performance.availability
-          .onlineYesterdayMin ?? null,
-      average7d:
-        performance.availability
-          .onlineSevenDayAvgMin ?? null,
-      target:
-        performance.availability
-          .onlineTargetMin ?? null,
-      status:
-        performance.availability.status ?? null,
+      today: performance.availability.onlineTodayMin ?? null,
+      yesterday: performance.availability.onlineYesterdayMin ?? null,
+      average7d: performance.availability.onlineSevenDayAvgMin ?? null,
+      target: performance.availability.onlineTargetMin ?? null,
+      status: performance.availability.status ?? null,
       format: "minutes",
     });
-
-    if (
-      !isNil(
-        performance.availability
-          .utilisationTodayPct,
-      )
-    ) {
-      metrics.push({
-        key: "utilisation",
-        label: "Utilisation",
-        today:
-          performance.availability
-            .utilisationTodayPct ?? null,
-        status:
-          performance.availability.status ?? null,
-        format: "percent",
-      });
-    }
   }
 
   if (performance.repeat) {
     metrics.push({
       key: "repeat",
       label: "Repeat Users",
-      today:
-        performance.repeat.today ?? null,
-      yesterday:
-        performance.repeat.yesterday ?? null,
-      average7d:
-        performance.repeat.sevenDayAvg ?? null,
-      status:
-        performance.repeat.status ?? null,
+      today: performance.repeat.today ?? null,
+      yesterday: performance.repeat.yesterday ?? null,
+      average7d: performance.repeat.sevenDayAvg ?? null,
+      status: performance.repeat.status ?? null,
       format: "percent",
     });
   }
@@ -309,64 +216,59 @@ function mapPerformance(
     metrics.push({
       key: "loyal",
       label: "Loyal Users",
-      today:
-        performance.loyal.today ?? null,
-      yesterday:
-        performance.loyal.yesterday ?? null,
-      average7d:
-        performance.loyal.sevenDayAvg ?? null,
-      status:
-        performance.loyal.status ?? null,
+      today: performance.loyal.today ?? null,
+      yesterday: performance.loyal.yesterday ?? null,
+      average7d: performance.loyal.sevenDayAvg ?? null,
+      status: performance.loyal.status ?? null,
       format: "percent",
     });
   }
 
   if (performance.ratings) {
+    const count = performance.ratings.count ?? null;
+    const average = performance.ratings.average ?? null;
+
     metrics.push({
       key: "rating",
       label: "Rating",
-      today:
-        performance.ratings.average ?? null,
-      target: 5,
+      today: average,
+      target: 4.5,
+      status:
+        count === null || count <= 10
+          ? "insufficient_data"
+          : average !== null && average >= 4.5
+            ? "above_target"
+            : average !== null && average >= 4
+              ? "stable"
+              : "needs_attention",
       format: "number",
-      count:
-        performance.ratings.count ?? null,
+      count,
     });
   }
 
   return {
-    featuredKey:
-      raw.focus?.primary?.type ?? undefined,
+    featuredKey: raw.focus?.primary?.type ?? undefined,
     metrics,
   };
 }
 
-function mapRanking(
-  raw: SaarthiRawData,
-): SaarthiRanking | null {
+function mapRanking(raw: SaarthiRawData): SaarthiRanking | null {
   const ranking = raw.ranking;
 
-  if (!ranking) {
-    return null;
-  }
+  if (!ranking) return null;
 
   return {
     currentRank: ranking.rank ?? null,
-    yesterdayRank:
-      ranking.yesterdayRank ?? null,
-    cohortSize:
-      ranking.cohortSize ?? null,
-    movement:
-      ranking.movement ?? null,
+    yesterdayRank: ranking.yesterdayRank ?? null,
+    cohortSize: ranking.cohortSize ?? null,
+    movement: ranking.movement ?? null,
   };
 }
 
 function mapContentBlock(
   raw?: SaarthiRawContent | null,
 ): SaarthiHighlight | null {
-  if (!raw) {
-    return null;
-  }
+  if (!raw) return null;
 
   return {
     title: raw.title ?? undefined,
@@ -377,9 +279,7 @@ function mapContentBlock(
 function mapMantra(
   raw?: SaarthiRawContent | null,
 ): SaarthiMantra | null {
-  if (!raw) {
-    return null;
-  }
+  if (!raw) return null;
 
   return {
     title: raw.title ?? undefined,
@@ -389,80 +289,51 @@ function mapMantra(
   };
 }
 
-function mapRisk(
-  raw: SaarthiRawData,
-): SaarthiRisk | null {
+function mapRisk(raw: SaarthiRawData): SaarthiRisk | null {
   const risk = raw.risk;
 
-  if (!risk) {
-    return null;
-  }
+  if (!risk) return null;
 
   return {
     state: risk.level ?? null,
-    title:
-      risk.content?.title ?? undefined,
-    message:
-      risk.content?.body ?? undefined,
-    reasonMetric:
-      risk.reasonMetric ?? undefined,
-    currentValue:
-      risk.currentValue ?? null,
-    safeValue:
-      risk.safeValue ?? null,
+    title: risk.content?.title ?? undefined,
+    message: risk.content?.body ?? undefined,
+    reasonMetric: risk.reasonMetric ?? undefined,
+    currentValue: risk.currentValue ?? null,
+    safeValue: risk.safeValue ?? null,
     gap: risk.gap ?? null,
   };
 }
 
-function mapJourney(
-  raw: SaarthiRawData,
-): SaarthiJourney | null {
+function mapJourney(raw: SaarthiRawData): SaarthiJourney | null {
   const journey = raw.journey;
 
-  if (!journey) {
-    return null;
-  }
+  if (!journey) return null;
 
-  const currentPriority =
-    journey.currentPriority ?? "";
-  const nextPriority =
-    journey.nextPriority ?? "";
+  const currentPriority = journey.currentPriority ?? "";
+  const nextPriority = journey.nextPriority ?? "";
 
-  const steps: SaarthiJourneyStep[] =
-    PRIORITY_LADDER.map((priority) => ({
+  const steps: SaarthiJourneyStep[] = PRIORITY_LADDER.map(
+    (priority) => ({
       key: priority,
       label: priority,
-      isCurrent:
-        priority === currentPriority,
-      isNext:
-        priority === nextPriority,
-    }));
+      isCurrent: priority === currentPriority,
+      isNext: priority === nextPriority,
+    }),
+  );
 
   return {
     steps,
-    currentTtpu:
-      secondsToDisplay(
-        journey.currentValueSec,
-      ),
-    targetTtpu:
-      secondsToDisplay(
-        journey.targetValueSec,
-      ),
-    gap:
-      secondsToDisplay(journey.gapSec),
-    progressPercent:
-      journey.progressPct ?? null,
-    message:
-      journey.content?.body ?? undefined,
+    currentTtpu: secondsToDisplay(journey.currentValueSec),
+    targetTtpu: secondsToDisplay(journey.targetValueSec),
+    gap: secondsToDisplay(journey.gapSec),
+    progressPercent: journey.progressPct ?? null,
+    message: journey.content?.body ?? undefined,
   };
 }
 
-function mapLayout(
-  raw: SaarthiRawData,
-): SaarthiLayoutItem[] {
-  const layout = raw.layout ?? [];
-
-  return layout
+function mapLayout(raw: SaarthiRawData): SaarthiLayoutItem[] {
+  return (raw.layout ?? [])
     .filter((item) => {
       const known = KNOWN_WIDGET_IDS.includes(
         item.id as SaarthiWidgetId,
