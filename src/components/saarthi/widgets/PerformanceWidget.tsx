@@ -1,103 +1,288 @@
 import { WidgetShell } from "../WidgetShell";
-import { formatDuration } from "@/services/saarthiApi";
-import type { SaarthiPerformance, SaarthiPerformanceMetric } from "@/types/saarthi";
+import type {
+  SaarthiPerformance,
+  SaarthiPerformanceMetric,
+} from "@/types/saarthi";
 
 interface Props {
   performance?: SaarthiPerformance | null;
+  size?: "small" | "medium" | "large";
 }
 
-export function PerformanceWidget({ performance }: Props) {
-  const metrics = performance?.metrics ?? [];
-  if (!metrics.length) return null;
+const METRIC_ORDER = [
+  "talk_time",
+  "pickup",
+  "availability",
+  "repeat",
+  "loyal",
+  "rating",
+];
 
-  const featuredKey = performance?.featuredKey;
-  const featured = featuredKey
-    ? metrics.find((m) => m.key === featuredKey)
-    : metrics[0];
-  const rest = metrics.filter((m) => m.key !== featured?.key);
+export function PerformanceWidget({
+  performance,
+}: Props) {
+  const sourceMetrics = performance?.metrics ?? [];
+
+  const metrics = METRIC_ORDER.map((key) =>
+    sourceMetrics.find((metric) => metric.key === key),
+  ).filter(
+    (metric): metric is SaarthiPerformanceMetric =>
+      Boolean(metric),
+  );
+
+  if (metrics.length === 0) {
+    return null;
+  }
 
   return (
-    <WidgetShell title="Performance" subtitle="Today vs recent trend">
-      {featured && <FeaturedRow metric={featured} />}
-      {rest.length > 0 && (
-        <div className="mt-3 space-y-2">
-          {rest.map((m) => (
-            <MetricRow key={m.key} metric={m} />
-          ))}
-        </div>
-      )}
+    <WidgetShell
+      title="Performance"
+      subtitle="Today vs your recent trend"
+    >
+      <div className="grid grid-cols-3 gap-1.5">
+        {metrics.slice(0, 6).map((metric) => (
+          <MetricCard
+            key={metric.key}
+            metric={metric}
+            featured={
+              metric.key === performance?.featuredKey
+            }
+          />
+        ))}
+      </div>
     </WidgetShell>
   );
 }
 
-function fmt(m: SaarthiPerformanceMetric, v: number | string | null | undefined) {
-  return formatDuration(v, m.format);
+function MetricCard({
+  metric,
+  featured,
+}: {
+  metric: SaarthiPerformanceMetric;
+  featured: boolean;
+}) {
+  const title = getCompactLabel(metric);
+  const today = formatMetricValue(
+    metric.today,
+    metric.format,
+  );
+  const yesterday = formatMetricValue(
+    metric.yesterday,
+    metric.format,
+  );
+  const average7d = formatMetricValue(
+    metric.average7d,
+    metric.format,
+  );
+  const status = formatStatus(metric.status);
+
+  const ratingMeta =
+    metric.key === "rating"
+      ? buildRatingMeta(metric)
+      : null;
+
+  return (
+    <article
+      className={[
+        "min-w-0 rounded-xl border px-2 py-2",
+        "bg-background/75",
+        featured
+          ? "border-primary/30 ring-1 ring-primary/10"
+          : "border-border/60",
+      ].join(" ")}
+    >
+      <p className="truncate text-[10px] font-semibold leading-3 text-muted-foreground">
+        {title}
+      </p>
+
+      <p className="mt-1 truncate text-[18px] font-bold leading-5 tracking-tight text-foreground">
+        {today}
+      </p>
+
+      {ratingMeta ? (
+        <p className="mt-1 truncate text-[9px] leading-3 text-muted-foreground">
+          {ratingMeta}
+        </p>
+      ) : (
+        <p className="mt-1 truncate text-[9px] leading-3 text-muted-foreground">
+          Y {yesterday} · 7d {average7d}
+        </p>
+      )}
+
+      {status ? (
+        <p
+          className={[
+            "mt-1.5 truncate text-[9px] font-semibold leading-3",
+            getStatusClass(metric.status),
+          ].join(" ")}
+        >
+          {status}
+        </p>
+      ) : (
+        <div className="mt-1.5 h-3" />
+      )}
+    </article>
+  );
 }
 
-function statusColor(status?: string | null) {
-  switch (status) {
-    case "elite":
-    case "strong":
-      return "text-status-strong";
-    case "stable":
-    case "average":
-      return "text-status-stable";
-    case "weak":
-    case "critical":
-      return "text-status-critical";
+function getCompactLabel(
+  metric: SaarthiPerformanceMetric,
+): string {
+  const labels: Record<string, string> = {
+    talk_time: "Talk Time",
+    pickup: "Pickup",
+    availability: "Online",
+    repeat: "Repeat",
+    loyal: "Loyal",
+    rating: "Rating",
+  };
+
+  return labels[metric.key] || metric.label || metric.key;
+}
+
+function formatMetricValue(
+  value: unknown,
+  format: SaarthiPerformanceMetric["format"],
+): string {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return "—";
+  }
+
+  const numericValue = Number(value);
+
+  if (!Number.isFinite(numericValue)) {
+    return String(value);
+  }
+
+  switch (format) {
+    case "seconds":
+      return formatSeconds(numericValue);
+
+    case "minutes":
+      return formatMinutes(numericValue);
+
+    case "percent":
+      return `${formatNumber(numericValue)}%`;
+
+    case "inr":
+      return formatCurrency(numericValue);
+
+    case "number":
     default:
-      return "text-muted-foreground";
+      return formatNumber(numericValue);
   }
 }
 
-function FeaturedRow({ metric }: { metric: SaarthiPerformanceMetric }) {
+function formatSeconds(value: number): string {
+  const seconds = Math.max(0, Math.round(value));
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+
+  if (minutes === 0) {
+    return `${remainingSeconds}s`;
+  }
+
+  if (remainingSeconds === 0) {
+    return `${minutes}m`;
+  }
+
+  return `${minutes}m ${remainingSeconds}s`;
+}
+
+function formatMinutes(value: number): string {
+  const minutes = Math.max(0, Math.round(value));
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours === 0) {
+    return `${remainingMinutes}m`;
+  }
+
+  if (remainingMinutes === 0) {
+    return `${hours}h`;
+  }
+
+  return `${hours}h ${remainingMinutes}m`;
+}
+
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat("en-IN", {
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function buildRatingMeta(
+  metric: SaarthiPerformanceMetric,
+): string | null {
+  const count = Number(metric.count);
+  const target = formatMetricValue(
+    metric.target,
+    metric.format,
+  );
+
+  if (Number.isFinite(count) && count > 0) {
+    return `${Math.round(count)} ratings · Target ${target}`;
+  }
+
+  return metric.target !== null &&
+    metric.target !== undefined
+    ? `Target ${target}`
+    : null;
+}
+
+function formatStatus(status: unknown): string | null {
+  if (!status) {
+    return null;
+  }
+
+  const normalized = String(status)
+    .trim()
+    .toLowerCase();
+
+  const labels: Record<string, string> = {
+    above_target: "Above target",
+    improving: "Improving",
+    stable: "On track",
+    needs_attention: "Needs attention",
+    insufficient_data: "Not enough data",
+    protected: "Protected",
+    watch: "Watch",
+  };
+
   return (
-    <div className="rounded-xl bg-primary/5 p-3">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-medium text-muted-foreground">
-          {metric.label ?? metric.key}
-        </p>
-        {metric.status && (
-          <span className={`text-[11px] font-semibold uppercase ${statusColor(metric.status)}`}>
-            {metric.status}
-          </span>
-        )}
-      </div>
-      <p className="mt-1 text-xl font-bold tracking-tight text-foreground">
-        {fmt(metric, metric.today)}
-      </p>
-      <div className="mt-1 flex gap-3 text-[11px] text-muted-foreground">
-        <span>Yday {fmt(metric, metric.yesterday)}</span>
-        <span>7d {fmt(metric, metric.average7d)}</span>
-        {metric.target !== undefined && metric.target !== null && (
-          <span>Target {fmt(metric, metric.target)}</span>
-        )}
-      </div>
-    </div>
+    labels[normalized] ||
+    normalized
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (character) =>
+        character.toUpperCase(),
+      )
   );
 }
 
-function MetricRow({ metric }: { metric: SaarthiPerformanceMetric }) {
-  return (
-    <div className="flex items-center justify-between rounded-lg bg-muted/30 px-3 py-2">
-      <div className="min-w-0">
-        <p className="truncate text-xs font-medium text-foreground">
-          {metric.label ?? metric.key}
-        </p>
-        <p className="text-[11px] text-muted-foreground">
-          Yday {fmt(metric, metric.yesterday)} · 7d {fmt(metric, metric.average7d)}
-        </p>
-      </div>
-      <div className="text-right">
-        <p className="text-sm font-semibold text-foreground">
-          {fmt(metric, metric.today)}
-        </p>
-        {metric.status && (
-          <p className={`text-[10px] font-medium uppercase ${statusColor(metric.status)}`}>
-            {metric.status}
-          </p>
-        )}
-      </div>
-    </div>
-  );
+function getStatusClass(status: unknown): string {
+  const normalized = String(status || "")
+    .trim()
+    .toLowerCase();
+
+  const classes: Record<string, string> = {
+    above_target: "text-emerald-600",
+    improving: "text-blue-600",
+    stable: "text-amber-600",
+    needs_attention: "text-orange-600",
+    insufficient_data: "text-muted-foreground",
+  };
+
+  return classes[normalized] || "text-muted-foreground";
 }
