@@ -19,15 +19,29 @@ export interface SaarthiHero {
   [key: string]: unknown;
 }
 
+export interface SaarthiCoachingAction {
+  id: string;
+  category?: string;
+  text: string;
+}
+
+export interface SaarthiCoaching {
+  metricKey: string;
+  actions: SaarthiCoachingAction[];
+}
+
 export interface SaarthiFocusItem {
   id?: string;
+  type?: string;
   title?: string;
   body?: string;
   currentValue?: string | number | null;
+  comparisonValue?: string | number | null;
   targetValue?: string | number | null;
   status?: string | null;
   ctaLabel?: string;
   ctaTarget?: string;
+  coaching?: SaarthiCoaching | null;
   [key: string]: unknown;
 }
 
@@ -164,10 +178,6 @@ export interface SaarthiResponse {
 
 /* -------------------------------------------------------------------------
  * Raw backend contract (Apps Script "experience" endpoint).
- * These types describe the payload exactly as the backend sends it, using
- * the backend's own field names. They are intentionally kept separate from
- * the UI-facing types above — the adapter (src/adapters/saarthiAdapter.ts)
- * is the only place that translates between the two.
  * ---------------------------------------------------------------------- */
 
 export interface SaarthiRawIdentity {
@@ -194,6 +204,17 @@ export interface SaarthiRawHero {
   targetDisplay?: string | null;
 }
 
+export interface SaarthiRawCoachingAction {
+  id?: string | null;
+  category?: string | null;
+  text?: string | null;
+}
+
+export interface SaarthiRawCoaching {
+  metricKey?: string | null;
+  actions?: SaarthiRawCoachingAction[] | null;
+}
+
 export interface SaarthiRawFocusItem {
   type?: string | null;
   score?: number | null;
@@ -205,6 +226,7 @@ export interface SaarthiRawFocusItem {
   body?: string | null;
   ctaLabel?: string | null;
   ctaTarget?: string | null;
+  coaching?: SaarthiRawCoaching | null;
 }
 
 export interface SaarthiRawFocus {
@@ -248,7 +270,10 @@ export interface SaarthiRawPerformance {
     | null;
   repeat?: SaarthiRawMetricBlock | null;
   loyal?: SaarthiRawMetricBlock | null;
-  ratings?: { count?: number | null; average?: number | null } | null;
+  ratings?: {
+    count?: number | null;
+    average?: number | null;
+  } | null;
 }
 
 export interface SaarthiRawRanking {
