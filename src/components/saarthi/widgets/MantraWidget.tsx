@@ -7,21 +7,22 @@ interface Props {
 
 export function MantraWidget({ mantra }: Props) {
   if (!mantra?.message) return null;
+
   return (
-    <div className="rounded-2xl border border-primary/20 bg-brand-soft/60 p-4">
-      <div className="flex items-start gap-3">
-        <Quote className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-        <div>
-          {mantra.title && (
-            <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-              {mantra.title}
-            </p>
-          )}
-          <p className="mt-1 text-sm italic leading-relaxed text-foreground">
-            {mantra.message}
-          </p>
-        </div>
+    <section className="flex items-start gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4 shadow-sm">
+      <div className="rounded-full bg-primary/10 p-2 text-primary">
+        <Quote className="h-4 w-4" />
       </div>
-    </div>
+      <div className="min-w-0">
+        {mantra.title ? (
+          <h3 className="text-sm font-semibold leading-tight text-foreground">
+            {mantra.title}
+          </h3>
+        ) : null}
+        <p className="mt-1 text-xs leading-4 text-muted-foreground">
+          {mantra.message}
+        </p>
+      </div>
+    </section>
   );
 }
