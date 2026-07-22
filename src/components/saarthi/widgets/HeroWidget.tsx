@@ -115,6 +115,7 @@ function getDisplayedTarget({
   targetSeconds: number | null;
   isStretchTarget: boolean;
 } {
+  // If the expert has not yet reached the official threshold, show that threshold.
   if (
     currentSeconds === null ||
     officialTargetSeconds === null ||
@@ -126,6 +127,7 @@ function getDisplayedTarget({
     };
   }
 
+  // Once the official threshold is reached, show a stable monthly stretch target.
   return {
     targetSeconds:
       currentSeconds + getMonthlyStretchIncrementSeconds(expertId),
@@ -133,16 +135,10 @@ function getDisplayedTarget({
   };
 }
 
-function normalizePriority(value: unknown): string | null {
-  const normalized = String(value ?? "").trim().toUpperCase();
-  return /^P[1-5]$/.test(normalized) ? normalized : null;
-}
-
 export function HeroWidget({ identity, hero }: Props) {
   const greeting = hero?.greeting ?? `Namaste, ${identity.expertName}`;
-  const priority = normalizePriority(
-    hero?.priorityLabel ?? identity.currentPriority,
-  );
+  const priority =
+    hero?.priorityLabel ?? identity.currentPriority ?? null;
 
   const currentSeconds = parseDurationToSeconds(hero?.currentAtt);
   const officialTargetSeconds = parseDurationToSeconds(hero?.targetAtt);
@@ -168,22 +164,16 @@ export function HeroWidget({ identity, hero }: Props) {
 
   const targetLabel = isStretchTarget
     ? "Next target"
-    : normalizePriority(identity.currentPriority) === "P1"
+    : identity.currentPriority === "P1"
       ? "Safe target"
       : "Next priority target";
 
   return (
     <section className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 to-brand-soft p-4 shadow-sm">
-      <div
-        className={`flex items-center gap-3 ${
-          priority ? "justify-between" : "justify-end"
-        }`}
-      >
-        {priority ? (
-          <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-            {priority}
-          </span>
-        ) : null}
+      <div className="flex items-center justify-between gap-3">
+        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+          {priority ?? "Your Priority"}
+        </span>
 
         {displayedProgress !== null ? (
           <span className="text-xs font-medium text-muted-foreground">
@@ -218,7 +208,7 @@ export function HeroWidget({ identity, hero }: Props) {
       {currentSeconds !== null || displayedTargetSeconds !== null ? (
         <div className="mt-3 grid grid-cols-2 gap-2">
           <MetricBox
-            label="Current ATT"
+            label="Current D3 Talktime"
             value={formatSeconds(currentSeconds)}
           />
           <MetricBox
