@@ -106,7 +106,10 @@ function WidgetRenderer({
 
     case "priority_journey":
       return data.journey ? (
-        <PriorityJourneyWidget journey={data.journey} />
+        <PriorityJourneyWidget
+          journey={data.journey}
+          currentPriority={data.identity.currentPriority}
+        />
       ) : null;
 
     case "highlight":
