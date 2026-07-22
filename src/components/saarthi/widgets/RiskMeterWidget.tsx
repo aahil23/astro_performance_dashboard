@@ -27,7 +27,7 @@ export function RiskMeterWidget({ risk }: Props) {
           </div>
 
           <div className="grid shrink-0 grid-cols-2 gap-2">
-            <Metric label="Current ATT" value={current} />
+            <Metric label="Current D3 Talktime" value={current} />
             <Metric label="Safe" value={safe} />
           </div>
         </div>
