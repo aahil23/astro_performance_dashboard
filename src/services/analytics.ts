@@ -1,22 +1,29 @@
 import {
-  getSaarthiApiToken,
-  getSaarthiApiUrl,
+  SAARTHI_API_TOKEN,
+  SAARTHI_API_URL,
 } from "./saarthiApi";
 
-const SESSION_KEY = "astrolokal_analytics_session";
-const SESSION_META_KEY = "astrolokal_analytics_session_meta";
-const SESSION_ENDED_FLAG = "astrolokal_analytics_session_ended";
+const SESSION_KEY =
+  "astrolokal_analytics_session";
+const SESSION_META_KEY =
+  "astrolokal_analytics_session_meta";
+const SESSION_ENDED_FLAG =
+  "astrolokal_analytics_session_ended";
 const SESSION_STARTED_LOGGED_KEY =
   "astrolokal_analytics_session_started_logged";
 
-const INACTIVITY_MS = 15 * 60 * 1000;
+const INACTIVITY_MS =
+  15 * 60 * 1000;
 
-let inactivityLogoutHandler: (() => void) | null = null;
+let inactivityLogoutHandler:
+  | (() => void)
+  | null = null;
 
 export function registerInactivityLogoutHandler(
   handler: () => void,
-): void {
-  inactivityLogoutHandler = handler;
+) {
+  inactivityLogoutHandler =
+    handler;
 }
 
 export interface AnalyticsEventPayload {
@@ -36,7 +43,10 @@ export interface AnalyticsEventInput {
   created_at?: string;
   ended_at?: string;
   duration_minutes?: number | "";
-  metadata?: Record<string, unknown>;
+  metadata?: Record<
+    string,
+    unknown
+  >;
   expert_id?: string;
   phone_number?: string;
   session_id?: string;
@@ -46,7 +56,9 @@ export interface AnalyticsEventInput {
   current_priority?: string;
   page_name?: string;
   widget_id?: string;
-  widget_position?: number | string;
+  widget_position?:
+    | number
+    | string;
   widget_size?: string;
   primary_focus?: string;
   metric_name?: string;
@@ -61,59 +73,48 @@ interface SessionMeta {
   phone_number: string;
 }
 
-interface SaarthiAnalyticsEvent {
-  event_id: string;
-  event_timestamp_ist: string;
-  expert_id: string;
-  session_id: string;
-  variant: string;
-  dashboard_version: string;
-  current_priority: string;
-  event_name: string;
-  page_name: string;
-  widget_id: string;
-  widget_position: number | string | "";
-  widget_size: string;
-  primary_focus: string;
-  metric_name: string;
-  content_id: string;
-  cta_target: string;
-  visible_duration_ms: number | "";
-  time_since_page_open_ms: number | "";
-  metadata: Record<string, unknown>;
-  user_agent: string;
-}
-
-interface SaarthiAnalyticsRequest {
-  action: "analytics";
-  token: string;
-  event: SaarthiAnalyticsEvent;
-}
-
 function isDev(): boolean {
   try {
-    return Boolean(import.meta.env?.DEV);
+    return Boolean(
+      import.meta.env?.DEV
+    );
   } catch {
     return false;
   }
 }
 
-function warn(...args: unknown[]): void {
+function warn(
+  ...args: unknown[]
+) {
   if (isDev()) {
-    console.warn("[analytics]", ...args);
+    console.warn(
+      "[analytics]",
+      ...args,
+    );
   }
 }
 
-function debug(...args: unknown[]): void {
+function debug(
+  ...args: unknown[]
+) {
   if (isDev()) {
-    console.log("[analytics]", ...args);
+    console.log(
+      "[analytics]",
+      ...args,
+    );
   }
 }
 
-export function generateEventId(): string {
+export function generateEventId():
+  string {
   const cryptoObj =
-    typeof globalThis !== "undefined"
-      ? (globalThis.crypto as Crypto | undefined)
+    typeof globalThis !==
+    "undefined"
+      ? (
+          globalThis.crypto as
+            | Crypto
+            | undefined
+        )
       : undefined;
 
   if (cryptoObj?.randomUUID) {
@@ -125,29 +126,47 @@ export function generateEventId(): string {
     .slice(2, 11)}`;
 }
 
-function newSessionId(): string {
+function newSessionId():
+  string {
   return `sess_${Date.now()}_${Math.random()
     .toString(36)
     .slice(2, 11)}`;
 }
 
-export function getSessionMeta(): SessionMeta | null {
-  if (typeof window === "undefined") {
+export function getSessionMeta():
+  SessionMeta | null {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
     return null;
   }
 
   try {
-    const raw = sessionStorage.getItem(SESSION_META_KEY);
+    const raw =
+      sessionStorage.getItem(
+        SESSION_META_KEY,
+      );
+
     return raw
-      ? (JSON.parse(raw) as SessionMeta)
+      ? (
+          JSON.parse(
+            raw,
+          ) as SessionMeta
+        )
       : null;
   } catch {
     return null;
   }
 }
 
-export function setSessionMeta(meta: SessionMeta): void {
-  if (typeof window === "undefined") {
+export function setSessionMeta(
+  meta: SessionMeta,
+) {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
     return;
   }
 
@@ -157,42 +176,72 @@ export function setSessionMeta(meta: SessionMeta): void {
       JSON.stringify(meta),
     );
   } catch {
-    // Ignore storage failures.
+    // Ignore storage failure.
   }
 }
 
-export function getSessionId(): string | null {
-  if (typeof window === "undefined") {
+export function getSessionId():
+  string | null {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
     return null;
   }
 
   try {
-    return sessionStorage.getItem(SESSION_KEY);
+    return sessionStorage.getItem(
+      SESSION_KEY,
+    );
   } catch {
     return null;
   }
 }
 
-export function getOrCreateSessionId(): string {
-  if (typeof window === "undefined") {
+export function getOrCreateSessionId():
+  string {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
     return newSessionId();
   }
 
   try {
-    const existing = sessionStorage.getItem(SESSION_KEY);
-    const ended =
-      sessionStorage.getItem(SESSION_ENDED_FLAG) === "1";
+    const existing =
+      sessionStorage.getItem(
+        SESSION_KEY,
+      );
 
-    if (existing && !ended) {
+    const ended =
+      sessionStorage.getItem(
+        SESSION_ENDED_FLAG,
+      ) === "1";
+
+    if (
+      existing &&
+      !ended
+    ) {
       return existing;
     }
 
-    sessionStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(SESSION_STARTED_LOGGED_KEY);
-    sessionStorage.removeItem(SESSION_ENDED_FLAG);
+    sessionStorage.removeItem(
+      SESSION_KEY,
+    );
+    sessionStorage.removeItem(
+      SESSION_STARTED_LOGGED_KEY,
+    );
+    sessionStorage.removeItem(
+      SESSION_ENDED_FLAG,
+    );
 
-    const id = newSessionId();
-    sessionStorage.setItem(SESSION_KEY, id);
+    const id =
+      newSessionId();
+
+    sessionStorage.setItem(
+      SESSION_KEY,
+      id,
+    );
 
     return id;
   } catch {
@@ -200,8 +249,12 @@ export function getOrCreateSessionId(): string {
   }
 }
 
-export function hasLoggedSessionStarted(): boolean {
-  if (typeof window === "undefined") {
+export function hasLoggedSessionStarted():
+  boolean {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
     return false;
   }
 
@@ -216,8 +269,11 @@ export function hasLoggedSessionStarted(): boolean {
   }
 }
 
-export function markSessionStartedLogged(): void {
-  if (typeof window === "undefined") {
+export function markSessionStartedLogged() {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
     return;
   }
 
@@ -227,49 +283,43 @@ export function markSessionStartedLogged(): void {
       "1",
     );
   } catch {
-    // Ignore storage failures.
+    // Ignore storage failure.
   }
 }
 
-export function clearSession(): void {
-  if (typeof window === "undefined") {
+export function clearSession() {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
     return;
   }
 
   try {
-    sessionStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(SESSION_META_KEY);
-    sessionStorage.removeItem(SESSION_ENDED_FLAG);
-    sessionStorage.removeItem(SESSION_STARTED_LOGGED_KEY);
+    sessionStorage.removeItem(
+      SESSION_KEY,
+    );
+    sessionStorage.removeItem(
+      SESSION_META_KEY,
+    );
+    sessionStorage.removeItem(
+      SESSION_ENDED_FLAG,
+    );
+    sessionStorage.removeItem(
+      SESSION_STARTED_LOGGED_KEY,
+    );
   } catch {
-    // Ignore storage failures.
+    // Ignore storage failure.
   }
-}
-
-function safelyParseMetadata(
-  metadataJson: string,
-): Record<string, unknown> {
-  try {
-    const parsed = JSON.parse(metadataJson) as unknown;
-
-    if (
-      parsed &&
-      typeof parsed === "object" &&
-      !Array.isArray(parsed)
-    ) {
-      return parsed as Record<string, unknown>;
-    }
-  } catch {
-    // Fall through to an empty metadata object.
-  }
-
-  return {};
 }
 
 function buildPayload(
   input: AnalyticsEventInput,
-): AnalyticsEventPayload | null {
-  const meta = getSessionMeta();
+):
+  | AnalyticsEventPayload
+  | null {
+  const meta =
+    getSessionMeta();
 
   const expert_id =
     input.expert_id ??
@@ -291,6 +341,7 @@ function buildPayload(
       "Event skipped because session_id is missing.",
       input.event_name,
     );
+
     return null;
   }
 
@@ -299,69 +350,157 @@ function buildPayload(
     new Date().toISOString();
 
   return {
-    event_id: generateEventId(),
-    event_name: input.event_name,
+    event_id:
+      generateEventId(),
+    event_name:
+      input.event_name,
     expert_id,
     phone_number,
     session_id,
     created_at,
-    ended_at: input.ended_at ?? "",
+    ended_at:
+      input.ended_at ?? "",
     duration_minutes:
-      typeof input.duration_minutes === "number"
+      typeof
+        input.duration_minutes ===
+      "number"
         ? input.duration_minutes
         : "",
-    metadata_json: JSON.stringify(
-      input.metadata ?? {},
-    ),
+    metadata_json:
+      JSON.stringify(
+        input.metadata ?? {},
+      ),
   };
 }
 
-function buildSaarthiRequest(
-  payload: AnalyticsEventPayload,
-  input: AnalyticsEventInput,
-): SaarthiAnalyticsRequest {
-  const metadata = {
-    phone_number: payload.phone_number,
-    ended_at: payload.ended_at,
-    duration_minutes: payload.duration_minutes,
-    ...safelyParseMetadata(payload.metadata_json),
-  };
+function parseMetadata(
+  metadataJson: string,
+): Record<
+  string,
+  unknown
+> {
+  try {
+    const parsed =
+      JSON.parse(
+        metadataJson,
+      ) as unknown;
 
+    if (
+      parsed &&
+      typeof parsed ===
+        "object" &&
+      !Array.isArray(parsed)
+    ) {
+      return parsed as Record<
+        string,
+        unknown
+      >;
+    }
+  } catch {
+    // Use empty metadata.
+  }
+
+  return {};
+}
+
+function buildRequestBody(
+  input: AnalyticsEventInput,
+  payload:
+    AnalyticsEventPayload,
+) {
   return {
     action: "analytics",
-    token: getSaarthiApiToken(),
+    token:
+      SAARTHI_API_TOKEN,
     event: {
-      event_id: payload.event_id,
-      event_timestamp_ist: payload.created_at,
-      expert_id: payload.expert_id,
-      session_id: payload.session_id,
-      variant: input.variant ?? "treatment",
+      event_id:
+        payload.event_id,
+
+      event_timestamp_ist:
+        payload.created_at,
+
+      expert_id:
+        payload.expert_id,
+
+      session_id:
+        payload.session_id,
+
+      variant:
+        input.variant ??
+        "treatment",
+
       dashboard_version:
-        input.dashboard_version ?? "saarthi_v1",
+        input.dashboard_version ??
+        "saarthi_v1",
+
       current_priority:
-        input.current_priority ?? "",
-      event_name: payload.event_name,
-      page_name: input.page_name ?? "saarthi",
-      widget_id: input.widget_id ?? "",
+        input.current_priority ??
+        "",
+
+      event_name:
+        payload.event_name,
+
+      page_name:
+        input.page_name ??
+        "saarthi",
+
+      widget_id:
+        input.widget_id ??
+        "",
+
       widget_position:
-        input.widget_position ?? "",
-      widget_size: input.widget_size ?? "",
+        input.widget_position ??
+        "",
+
+      widget_size:
+        input.widget_size ??
+        "",
+
       primary_focus:
-        input.primary_focus ?? "",
-      metric_name: input.metric_name ?? "",
-      content_id: input.content_id ?? "",
-      cta_target: input.cta_target ?? "",
+        input.primary_focus ??
+        "",
+
+      metric_name:
+        input.metric_name ??
+        "",
+
+      content_id:
+        input.content_id ??
+        "",
+
+      cta_target:
+        input.cta_target ??
+        "",
+
       visible_duration_ms:
-        typeof input.visible_duration_ms === "number"
-          ? input.visible_duration_ms
-          : "",
+        input
+          .visible_duration_ms ??
+        "",
+
       time_since_page_open_ms:
-        typeof input.time_since_page_open_ms === "number"
-          ? input.time_since_page_open_ms
-          : "",
-      metadata,
+        input
+          .time_since_page_open_ms ??
+        "",
+
+      metadata: {
+        phone_number:
+          payload.phone_number,
+
+        ended_at:
+          payload.ended_at,
+
+        duration_minutes:
+          payload
+            .duration_minutes,
+
+        ...parseMetadata(
+          payload.metadata_json,
+        ),
+      },
+
       user_agent:
-        typeof navigator !== "undefined"
+        typeof navigator !==
+        "undefined"
           ? navigator.userAgent
           : "",
     },
@@ -371,116 +510,165 @@ function buildSaarthiRequest(
 export async function logAnalyticsEvent(
   input: AnalyticsEventInput,
 ): Promise<void> {
-  const payload = buildPayload(input);
+  const payload =
+    buildPayload(input);
 
   if (!payload) {
     return;
   }
 
+  const requestBody =
+    buildRequestBody(
+      input,
+      payload,
+    );
+
   try {
-    const analyticsUrl = getSaarthiApiUrl();
-    const requestBody =
-      buildSaarthiRequest(payload, input);
+    debug(
+      "URL",
+      SAARTHI_API_URL,
+    );
+    debug(
+      "payload",
+      requestBody,
+    );
 
-    debug("URL", analyticsUrl);
-    debug("request", requestBody);
+    const response =
+      await fetch(
+        SAARTHI_API_URL,
+        {
+          method: "POST",
+          mode: "cors",
+          keepalive: true,
+          cache: "no-store",
+          headers: {
+            "Content-Type":
+              "text/plain;charset=UTF-8",
+          },
+          body:
+            JSON.stringify(
+              requestBody,
+            ),
+        },
+      );
 
-    const response = await fetch(analyticsUrl, {
-      method: "POST",
-      mode: "cors",
-      keepalive: true,
-      cache: "no-store",
-      headers: {
-        "Content-Type":
-          "text/plain;charset=UTF-8",
-      },
-      body: JSON.stringify(requestBody),
-    });
+    const responseText =
+      await response.text();
 
-    const responseText = await response.text();
-
-    let result:
+    let responseJson:
       | {
           success?: boolean;
           error?: string;
-          statusCode?: number;
         }
       | null = null;
 
     try {
-      result = JSON.parse(responseText) as {
-        success?: boolean;
-        error?: string;
-        statusCode?: number;
-      };
+      responseJson =
+        JSON.parse(
+          responseText,
+        ) as {
+          success?: boolean;
+          error?: string;
+        };
     } catch {
       throw new Error(
         `Invalid analytics response: ${responseText}`,
       );
     }
 
-    if (!result?.success) {
+    if (
+      !responseJson?.success
+    ) {
       throw new Error(
-        result?.error ??
-          "Analytics API returned an unsuccessful response.",
+        responseJson?.error ??
+        "Analytics event was not captured.",
       );
     }
 
-    debug("captured", result);
+    debug(
+      "event captured",
+      responseJson,
+    );
   } catch (err) {
-    warn("fetch failed", err);
+    warn(
+      "fetch failed",
+      err,
+    );
   }
 }
 
 export function logAnalyticsEventBeacon(
   input: AnalyticsEventInput,
 ): void {
-  const payload = buildPayload(input);
+  const payload =
+    buildPayload(input);
 
   if (!payload) {
     return;
   }
 
-  try {
-    const analyticsUrl = getSaarthiApiUrl();
-    const requestBody =
-      buildSaarthiRequest(payload, input);
+  const requestBody =
+    buildRequestBody(
+      input,
+      payload,
+    );
 
+  try {
     if (
-      typeof navigator !== "undefined" &&
+      typeof navigator !==
+        "undefined" &&
       navigator.sendBeacon
     ) {
-      const blob = new Blob(
-        [JSON.stringify(requestBody)],
-        {
-          type: "text/plain;charset=UTF-8",
-        },
-      );
+      const blob =
+        new Blob(
+          [
+            JSON.stringify(
+              requestBody,
+            ),
+          ],
+          {
+            type:
+              "text/plain;charset=UTF-8",
+          },
+        );
 
-      const accepted =
+      const ok =
         navigator.sendBeacon(
-          analyticsUrl,
+          SAARTHI_API_URL,
           blob,
         );
 
-      if (accepted) {
+      if (ok) {
         return;
       }
     }
 
-    void logAnalyticsEvent(input);
+    void logAnalyticsEvent(
+      input,
+    );
   } catch (err) {
-    warn("beacon failed", err);
+    warn(
+      "beacon failed",
+      err,
+    );
   }
 }
 
 let inactivityTimer:
-  | ReturnType<typeof setTimeout>
+  | ReturnType<
+      typeof setTimeout
+    >
   | null = null;
 
-let sessionStartedAt: string | null = null;
-let activityListenersAttached = false;
-let unloadListenersAttached = false;
+let sessionStartedAt:
+  | string
+  | null = null;
+
+let activityListenersAttached =
+  false;
+
+let unloadListenersAttached =
+  false;
 
 const ACTIVITY_EVENTS = [
   "mousemove",
@@ -490,23 +678,35 @@ const ACTIVITY_EVENTS = [
   "click",
 ] as const;
 
-function resetInactivityTimer(): void {
-  if (typeof window === "undefined") {
+function resetInactivityTimer() {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
     return;
   }
 
   if (inactivityTimer) {
-    clearTimeout(inactivityTimer);
+    clearTimeout(
+      inactivityTimer,
+    );
   }
 
-  inactivityTimer = setTimeout(() => {
-    endSession("inactivity");
-    inactivityLogoutHandler?.();
-  }, INACTIVITY_MS);
+  inactivityTimer =
+    setTimeout(() => {
+      endSession(
+        "inactivity",
+      );
+
+      inactivityLogoutHandler?.();
+    }, INACTIVITY_MS);
 }
 
-function onActivity(): void {
-  if (typeof window === "undefined") {
+function onActivity() {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
     return;
   }
 
@@ -521,36 +721,46 @@ function onActivity(): void {
   resetInactivityTimer();
 }
 
-function attachActivityListeners(): void {
+function attachActivityListeners() {
   if (
-    typeof window === "undefined" ||
+    typeof window ===
+      "undefined" ||
     activityListenersAttached
   ) {
     return;
   }
 
-  ACTIVITY_EVENTS.forEach((eventName) => {
-    window.addEventListener(
-      eventName,
-      onActivity,
-      { passive: true },
-    );
-  });
+  ACTIVITY_EVENTS.forEach(
+    eventName => {
+      window.addEventListener(
+        eventName,
+        onActivity,
+        {
+          passive: true,
+        },
+      );
+    },
+  );
 
-  activityListenersAttached = true;
+  activityListenersAttached =
+    true;
 }
 
-function attachUnloadListeners(): void {
+function attachUnloadListeners() {
   if (
-    typeof window === "undefined" ||
+    typeof window ===
+      "undefined" ||
     unloadListenersAttached
   ) {
     return;
   }
 
-  const handleUnload = (): void => {
-    endSession("unload");
-  };
+  const handleUnload =
+    () => {
+      endSession(
+        "unload",
+      );
+    };
 
   window.addEventListener(
     "beforeunload",
@@ -562,13 +772,15 @@ function attachUnloadListeners(): void {
     handleUnload,
   );
 
-  unloadListenersAttached = true;
+  unloadListenersAttached =
+    true;
 }
 
 export function startSession(
   meta: SessionMeta,
 ): string {
-  const existingMeta = getSessionMeta();
+  const existingMeta =
+    getSessionMeta();
 
   const expertChanged =
     existingMeta &&
@@ -581,12 +793,13 @@ export function startSession(
 
   if (expertChanged) {
     clearSession();
-    sessionStartedAt = null;
+    sessionStartedAt =
+      null;
   }
 
   setSessionMeta(meta);
 
-  const sessionId =
+  const sid =
     getOrCreateSessionId();
 
   if (!sessionStartedAt) {
@@ -598,13 +811,19 @@ export function startSession(
   attachUnloadListeners();
   resetInactivityTimer();
 
-  return sessionId;
+  return sid;
 }
 
 export function endSession(
-  reason: "logout" | "unload" | "inactivity",
+  reason:
+    | "logout"
+    | "unload"
+    | "inactivity",
 ): void {
-  if (typeof window === "undefined") {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
     return;
   }
 
@@ -617,12 +836,12 @@ export function endSession(
       return;
     }
 
-    const sessionId =
+    const sid =
       sessionStorage.getItem(
         SESSION_KEY,
       );
 
-    if (!sessionId) {
+    if (!sid) {
       return;
     }
 
@@ -633,23 +852,34 @@ export function endSession(
     const endedAt =
       new Date().toISOString();
 
-    const durationMinutes = Number(
-      (
+    const durationMinutes =
+      Number(
         (
-          new Date(endedAt).getTime() -
-          new Date(startedAt).getTime()
-        ) /
-        60000
-      ).toFixed(2),
-    );
+          (
+            new Date(
+              endedAt,
+            ).getTime() -
+            new Date(
+              startedAt,
+            ).getTime()
+          ) /
+          60000
+        ).toFixed(2),
+      );
 
-    const input: AnalyticsEventInput = {
-      event_name: "session_ended",
-      created_at: startedAt,
-      ended_at: endedAt,
-      duration_minutes: durationMinutes,
+    const input:
+      AnalyticsEventInput = {
+      event_name:
+        "session_ended",
+      created_at:
+        startedAt,
+      ended_at:
+        endedAt,
+      duration_minutes:
+        durationMinutes,
       metadata: {
-        end_reason: reason,
+        end_reason:
+          reason,
       },
     };
 
@@ -658,29 +888,51 @@ export function endSession(
       "1",
     );
 
-    if (reason === "unload") {
-      logAnalyticsEventBeacon(input);
+    if (
+      reason === "unload"
+    ) {
+      logAnalyticsEventBeacon(
+        input,
+      );
     } else {
-      void logAnalyticsEvent(input);
+      void logAnalyticsEvent(
+        input,
+      );
     }
 
-    if (reason === "logout") {
+    if (
+      reason === "logout"
+    ) {
       clearSession();
     }
 
-    if (inactivityTimer) {
-      clearTimeout(inactivityTimer);
-      inactivityTimer = null;
+    if (
+      inactivityTimer
+    ) {
+      clearTimeout(
+        inactivityTimer,
+      );
+
+      inactivityTimer =
+        null;
     }
 
-    sessionStartedAt = null;
+    sessionStartedAt =
+      null;
   } catch (err) {
-    warn("endSession failed", err);
+    warn(
+      "endSession failed",
+      err,
+    );
   }
 }
 
-export function isSessionActive(): boolean {
-  if (typeof window === "undefined") {
+export function isSessionActive():
+  boolean {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
     return false;
   }
 
