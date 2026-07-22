@@ -56,6 +56,8 @@ export interface SaarthiEarnings {
   yesterday?: number | null;
   average7d?: number | null;
   currentBenchmark?: number | null;
+  effectiveBenchmark?: number | null;
+  benchmarkStatus?: string | null;
   nextBenchmark?: number | null;
   unlockDelta?: number | null;
   potentialLoss?: number | null;
@@ -73,7 +75,8 @@ export interface SaarthiPerformanceMetric {
   target?: number | string | null;
   status?: string | null;
   unit?: string;
-  format?: "seconds" | "minutes" | "percent" | "number" | "inr";
+  format?: "seconds" | "minutes" | "percent" | "count" | "number" | "inr";
+  displayMode?: "count" | "percent";
   [key: string]: unknown;
 }
 
@@ -239,6 +242,8 @@ export interface SaarthiRawEarnings {
   yesterday?: number | null;
   sevenDayAvg?: number | null;
   currentPriorityBenchmark?: number | null;
+  effectiveBenchmark?: number | null;
+  benchmarkStatus?: string | null;
   nextPriorityBenchmark?: number | null;
   lowerPriorityBenchmark?: number | null;
   todayVsYesterday?: number | null;
@@ -268,11 +273,24 @@ export interface SaarthiRawPerformance {
         utilisationTodayPct?: number | null;
       })
     | null;
-  repeat?: SaarthiRawMetricBlock | null;
+  repeat?:
+    | (SaarthiRawMetricBlock & {
+        displayMode?: "count" | "percent" | null;
+        eligibleUsersToday?: number | null;
+        eligibleUsersYesterday?: number | null;
+        eligibleUsersSevenDay?: number | null;
+      })
+    | null;
   loyal?: SaarthiRawMetricBlock | null;
   ratings?: {
-    count?: number | null;
-    average?: number | null;
+    today?: number | null;
+    yesterday?: number | null;
+    sevenDayAvg?: number | null;
+    comparison?: number | null;
+    countToday?: number | null;
+    countYesterday?: number | null;
+    countSevenDay?: number | null;
+    status?: string | null;
   } | null;
 }
 
