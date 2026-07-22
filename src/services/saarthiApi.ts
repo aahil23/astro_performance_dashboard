@@ -2,7 +2,7 @@ import { adaptSaarthiExperience } from "@/adapters/saarthiAdapter";
 import type { SaarthiData, SaarthiRawEnvelope } from "@/types/saarthi";
 
 export const SAARTHI_API_URL =
-  "https://script.google.com/macros/s/AKfycbyvf23IZRkfyjgZJXCDECBqLqtHIhFBkEU69WjFjbsC6nSaoCFXnPDk5ldD2ncM2JgxOg/exec";
+  "https://script.google.com/macros/s/AKfycbx6ioURWIph9e6pDWAM5pqoMhqFiRIgWn4xokAB11JMJg7JIyc2wn7OzHNemMmy0JBAMQ/exec";
 
 const SAARTHI_API_TOKEN = "8b7f3a1c5d9e2f4a6b8c0d1e3f5g7h9j";
 
