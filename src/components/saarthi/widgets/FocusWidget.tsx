@@ -157,16 +157,16 @@ function SecondaryFocus({
       type="button"
       onClick={canOpenGuide ? onOpenGuide : undefined}
       disabled={!canOpenGuide}
-      className="min-h-[88px] rounded-xl border border-border/60 bg-background px-3 py-2.5 text-left transition-colors enabled:hover:bg-muted/40 enabled:focus-visible:outline-none enabled:focus-visible:ring-2 enabled:focus-visible:ring-primary disabled:cursor-default"
+      className="flex min-h-[96px] w-full flex-col rounded-xl border border-border/60 bg-background px-3 py-2.5 text-left transition-colors enabled:hover:bg-muted/40 enabled:focus-visible:outline-none enabled:focus-visible:ring-2 enabled:focus-visible:ring-primary disabled:cursor-default"
     >
       <p className="text-[10px] font-semibold uppercase tracking-wide text-primary">
         {getMetricHeading(metricType)}
       </p>
-      <p className="mt-1 line-clamp-2 text-xs font-semibold leading-4 text-foreground">
+      <p className="mt-1 text-[clamp(11px,2.8vw,12px)] font-semibold leading-4 text-foreground">
         {getActionTitle(item, metricType)}
       </p>
       {canOpenGuide ? (
-        <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-primary">
+        <span className="mt-auto inline-flex items-center gap-1 pt-2 text-[10px] font-semibold text-primary">
           {item.ctaLabel || "Show Me How"}
           <ArrowRight className="h-3 w-3" />
         </span>
@@ -360,7 +360,9 @@ function buildValueSummary(
   }
 
   return {
-    current: current ? { label: "Current", value: current } : undefined,
+    current: current
+      ? { label: type === "talk_time" ? "Current ATT" : "Current", value: current }
+      : undefined,
     target: target
       ? {
           label: type === "missed_requests" ? "Maximum" : "Target",
