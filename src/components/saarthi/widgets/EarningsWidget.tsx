@@ -23,8 +23,14 @@ export function EarningsWidget({ earnings }: Props) {
         </p>
 
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <ValueBlock label="Yesterday" value={formatCurrency(earnings.yesterday)} />
-          <ValueBlock label="7-day avg" value={formatCurrency(earnings.average7d)} />
+          <ValueBlock
+            label="Yesterday"
+            value={formatCurrency(earnings.yesterday)}
+          />
+          <ValueBlock
+            label="7-day avg"
+            value={formatCurrency(earnings.average7d)}
+          />
         </div>
       </div>
 
@@ -39,10 +45,18 @@ export function EarningsWidget({ earnings }: Props) {
   );
 }
 
-function ValueBlock({ label, value }: { label: string; value: string }) {
+function ValueBlock({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
   return (
     <div className="rounded-lg bg-background px-3 py-2">
-      <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
+      <p className="text-[11px] font-medium text-muted-foreground">
+        {label}
+      </p>
       <p className="mt-0.5 text-sm font-bold leading-tight text-foreground">
         {value}
       </p>
@@ -51,20 +65,20 @@ function ValueBlock({ label, value }: { label: string; value: string }) {
 }
 
 function P1Benchmark({ earnings }: { earnings: SaarthiEarnings }) {
-  const benchmark = earnings.currentBenchmark;
-  const average = earnings.average7d;
+  const benchmark = toFiniteNumber(earnings.currentBenchmark);
+  const today = toFiniteNumber(earnings.today);
+
   const gap =
-    benchmark !== null &&
-    benchmark !== undefined &&
-    average !== null &&
-    average !== undefined
-      ? Number(benchmark) - Number(average)
+    benchmark !== null && today !== null
+      ? benchmark - today
       : null;
 
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl border border-border/60 px-3 py-2.5">
       <div>
-        <p className="text-xs font-medium text-muted-foreground">P1 benchmark</p>
+        <p className="text-xs font-medium text-muted-foreground">
+          P1 benchmark
+        </p>
         <p className="mt-0.5 text-lg font-bold leading-tight text-foreground">
           {formatCurrency(benchmark)}
         </p>
@@ -110,13 +124,26 @@ function UnlockBenchmark({ earnings }: { earnings: SaarthiEarnings }) {
   );
 }
 
-function formatCurrency(value: unknown): string {
-  const numericValue = Number(value);
+function toFiniteNumber(value: unknown): number | null {
   if (
     value === null ||
     value === undefined ||
-    !Number.isFinite(numericValue)
+    String(value).trim() === ""
   ) {
+    return null;
+  }
+
+  const numericValue = Number(value);
+
+  return Number.isFinite(numericValue)
+    ? numericValue
+    : null;
+}
+
+function formatCurrency(value: unknown): string {
+  const numericValue = toFiniteNumber(value);
+
+  if (numericValue === null) {
     return "—";
   }
 
