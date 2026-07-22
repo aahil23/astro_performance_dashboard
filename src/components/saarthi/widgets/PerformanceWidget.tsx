@@ -33,7 +33,7 @@ export function PerformanceWidget({ performance }: Props) {
   if (metrics.length === 0) return null;
 
   return (
-    <WidgetShell title="Performance" subtitle="Today vs your recent trend">
+    <WidgetShell title="Performance" subtitle="Today vs target or recent trend">
       <div className="grid grid-cols-3 gap-2">
         {metrics.slice(0, 6).map((metric) => (
           <MetricCard key={metric.key} metric={metric} />
@@ -44,33 +44,20 @@ export function PerformanceWidget({ performance }: Props) {
 }
 
 function MetricCard({ metric }: { metric: SaarthiPerformanceMetric }) {
-  const title = getCompactLabel(metric);
-  const today = formatMetricValue(metric.today, metric.format);
-  const yesterday = formatMetricValue(metric.yesterday, metric.format);
-  const average7d = formatMetricValue(metric.average7d, metric.format);
-  const target = formatMetricValue(metric.target, metric.format);
-
-  const isRating = metric.key === "rating";
   const isTargetBased =
-    TARGET_BASED_METRICS.has(metric.key) &&
-    hasValue(metric.target);
+    TARGET_BASED_METRICS.has(metric.key) && hasValue(metric.target);
 
-  const canCompare =
-    isTargetBased || hasValue(metric.average7d);
-
-  const resolvedStatus =
-    !isRating && !canCompare
-      ? "insufficient_data"
-      : metric.status;
-
-  const status = isRating
-    ? null
-    : formatStatus(resolvedStatus);
+  const today = formatMetricValue(metric.today, metric.format);
+  const comparisonLabel = isTargetBased ? "T" : "Y";
+  const comparisonValue = isTargetBased ? metric.target : metric.yesterday;
+  const comparison = formatMetricValue(comparisonValue, metric.format);
+  const average7d = formatMetricValue(metric.average7d, metric.format);
+  const status = formatStatus(metric.status);
 
   return (
     <div className="min-w-0 rounded-xl border border-border/60 bg-muted/20 px-2.5 py-2.5">
       <p className="truncate text-[11px] font-semibold text-muted-foreground">
-        {title}
+        {getCompactLabel(metric)}
       </p>
 
       <p className="mt-1 truncate text-base font-bold leading-none text-foreground">
@@ -78,17 +65,10 @@ function MetricCard({ metric }: { metric: SaarthiPerformanceMetric }) {
       </p>
 
       <div className="mt-1.5 space-y-0.5 text-[10px] leading-3 text-muted-foreground">
-        {isTargetBased ? (
-          <p className="whitespace-nowrap">
-            <span className="font-medium text-blue-600">T</span>{" "}
-            <span className="font-semibold">{target}</span>
-          </p>
-        ) : (
-          <p className="whitespace-nowrap">
-            <span className="font-medium text-blue-600">Y</span>{" "}
-            <span className="font-semibold">{yesterday}</span>
-          </p>
-        )}
+        <p className="whitespace-nowrap">
+          <span className="font-medium text-blue-600">{comparisonLabel}</span>{" "}
+          <span className="font-semibold">{comparison}</span>
+        </p>
 
         <p className="whitespace-nowrap">
           <span className="font-medium text-blue-600">7D</span>{" "}
@@ -97,11 +77,11 @@ function MetricCard({ metric }: { metric: SaarthiPerformanceMetric }) {
       </div>
 
       <p
-        className={`mt-1.5 min-h-3 truncate text-[10px] font-semibold leading-3 ${
-          status ? getStatusClass(resolvedStatus) : "text-muted-foreground"
-        }`}
+        className={`mt-1.5 min-h-3 truncate text-[10px] font-semibold leading-3 ${getStatusClass(
+          metric.status,
+        )}`}
       >
-        {status ?? "\u00A0"}
+        {status}
       </p>
     </div>
   );
@@ -121,14 +101,7 @@ function getCompactLabel(metric: SaarthiPerformanceMetric): string {
 }
 
 function hasValue(value: unknown): boolean {
-  if (
-    value === null ||
-    value === undefined ||
-    value === ""
-  ) {
-    return false;
-  }
-
+  if (value === null || value === undefined || value === "") return false;
   return Number.isFinite(Number(value));
 }
 
@@ -147,6 +120,8 @@ function formatMetricValue(
       return formatMinutes(numericValue);
     case "percent":
       return `${formatNumber(numericValue)}%`;
+    case "count":
+      return `${formatNumber(numericValue)} users`;
     case "inr":
       return formatCurrency(numericValue);
     case "number":
@@ -162,7 +137,6 @@ function formatSeconds(value: number): string {
 
   if (minutes === 0) return `${remainingSeconds}s`;
   if (remainingSeconds === 0) return `${minutes}m`;
-
   return `${minutes}m ${remainingSeconds}s`;
 }
 
@@ -173,7 +147,6 @@ function formatMinutes(value: number): string {
 
   if (hours === 0) return `${remainingMinutes}m`;
   if (remainingMinutes === 0) return `${hours}h`;
-
   return `${hours}h ${remainingMinutes}m`;
 }
 
@@ -191,10 +164,8 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-function formatStatus(status: unknown): string | null {
-  if (!status) return null;
-
-  const normalized = String(status).trim().toLowerCase();
+function formatStatus(status: unknown): string {
+  const normalized = String(status || "").trim().toLowerCase();
 
   const labels: Record<string, string> = {
     above_target: "Above target",
@@ -202,16 +173,9 @@ function formatStatus(status: unknown): string | null {
     stable: "On track",
     needs_attention: "Needs attention",
     insufficient_data: "Not enough data",
-    protected: "Protected",
-    watch: "Watch",
   };
 
-  return (
-    labels[normalized] ||
-    normalized
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (character) => character.toUpperCase())
-  );
+  return labels[normalized] || "Not enough data";
 }
 
 function getStatusClass(status: unknown): string {
