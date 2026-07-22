@@ -146,6 +146,8 @@ function mapEarnings(raw: SaarthiRawData): SaarthiEarnings | null {
     yesterday: earnings.yesterday ?? null,
     average7d: earnings.sevenDayAvg ?? null,
     currentBenchmark: earnings.currentPriorityBenchmark ?? null,
+    effectiveBenchmark: earnings.effectiveBenchmark ?? null,
+    benchmarkStatus: earnings.benchmarkStatus ?? null,
     nextBenchmark: earnings.nextPriorityBenchmark ?? null,
     unlockDelta: earnings.unlockDelta ?? null,
     potentialLoss: earnings.potentialLoss ?? null,
@@ -201,6 +203,11 @@ function mapPerformance(raw: SaarthiRawData): SaarthiPerformance | null {
   }
 
   if (performance.repeat) {
+    const displayMode =
+      performance.repeat.displayMode === "percent"
+        ? "percent"
+        : "count";
+
     metrics.push({
       key: "repeat",
       label: "Repeat Users",
@@ -208,7 +215,10 @@ function mapPerformance(raw: SaarthiRawData): SaarthiPerformance | null {
       yesterday: performance.repeat.yesterday ?? null,
       average7d: performance.repeat.sevenDayAvg ?? null,
       status: performance.repeat.status ?? null,
-      format: "percent",
+      format: displayMode,
+      displayMode,
+      eligibleUsersToday:
+        performance.repeat.eligibleUsersToday ?? null,
     });
   }
 
@@ -225,24 +235,15 @@ function mapPerformance(raw: SaarthiRawData): SaarthiPerformance | null {
   }
 
   if (performance.ratings) {
-    const count = performance.ratings.count ?? null;
-    const average = performance.ratings.average ?? null;
-
     metrics.push({
       key: "rating",
       label: "Rating",
-      today: average,
-      target: 4.5,
-      status:
-        count === null || count <= 10
-          ? "insufficient_data"
-          : average !== null && average >= 4.5
-            ? "above_target"
-            : average !== null && average >= 4
-              ? "stable"
-              : "needs_attention",
+      today: performance.ratings.today ?? null,
+      yesterday: performance.ratings.yesterday ?? null,
+      average7d: performance.ratings.sevenDayAvg ?? null,
+      status: performance.ratings.status ?? null,
       format: "number",
-      count,
+      count: performance.ratings.countToday ?? null,
     });
   }
 
