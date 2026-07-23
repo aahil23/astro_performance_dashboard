@@ -38,7 +38,7 @@ function SaarthiPage() {
   }, [navigate]);
 
   useEffect(() => {
-    if (!data || hasLoggedSessionStarted()) return;
+    if (!data) return;
 
     const identity = data.identity;
     const phoneNumber = session.get() ?? "";
@@ -53,6 +53,8 @@ function SaarthiPage() {
       isNew: feedbackIsNew,
     });
 
+    // Always restore the browser-side session lifecycle on page load or refresh.
+    // The session_started event itself is still sent only once per session.
     const sessionId = startSession({
       expert_id: String(identity.expertId),
       phone_number: phoneNumber,
@@ -61,6 +63,8 @@ function SaarthiPage() {
       current_priority: identity.currentPriority,
       primary_focus: data.focus?.primary?.type,
     });
+
+    if (hasLoggedSessionStarted()) return;
 
     void logAnalyticsEvent({
       event_name: "session_started",
@@ -74,9 +78,11 @@ function SaarthiPage() {
         next_priority: identity.nextPriority,
         dashboard_route: "saarthi",
         primary_focus: data.focus?.primary?.type ?? "",
-        personal_feedback_available: Boolean(feedback),
-        personal_feedback_version: feedback?.version ?? null,
-        personal_feedback_is_new: feedbackIsNew,
+        personal_feedback: {
+          available: Boolean(feedback),
+          version: feedback?.version ?? null,
+          is_new: feedbackIsNew,
+        },
       },
     });
 
