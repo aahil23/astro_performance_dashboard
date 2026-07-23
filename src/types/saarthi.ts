@@ -130,6 +130,14 @@ export interface SaarthiHighlight {
   [key: string]: unknown;
 }
 
+export interface SaarthiPersonalFeedback {
+  id: string;
+  title: string;
+  text: string;
+  markdown: string;
+  version: number;
+}
+
 export interface SaarthiMantra {
   title?: string;
   message?: string;
@@ -148,7 +156,8 @@ export type SaarthiWidgetId =
   | "mantra"
   | "priority_journey"
   | "leaderboard"
-  | "risk_meter";
+  | "risk_meter"
+  | "personal_feedback";
 
 export interface SaarthiLayoutItem {
   id: SaarthiWidgetId | string;
@@ -168,6 +177,7 @@ export interface SaarthiData {
   journey?: SaarthiJourney | null;
   highlight?: SaarthiHighlight | null;
   mantra?: SaarthiMantra | null;
+  personalFeedback?: SaarthiPersonalFeedback | null;
   layout?: SaarthiLayoutItem[];
   metadata?: Record<string, unknown>;
 }
@@ -301,6 +311,15 @@ export interface SaarthiRawRanking {
   movement?: number | null;
 }
 
+export interface SaarthiRawPersonalFeedback {
+  id?: string | null;
+  title?: string | null;
+  text?: string | null;
+  markdown?: string | null;
+  version?: number | null;
+  updatedAtIst?: string | null;
+}
+
 export interface SaarthiRawContent {
   contentId?: string | null;
   title?: string | null;
@@ -346,6 +365,7 @@ export interface SaarthiRawData {
   journey?: SaarthiRawJourney | null;
   highlight?: SaarthiRawContent | null;
   mantra?: SaarthiRawContent | null;
+  personalFeedback?: SaarthiRawPersonalFeedback | null;
   layout?: SaarthiRawLayoutItem[] | null;
   metadata?: Record<string, unknown> | null;
 }
