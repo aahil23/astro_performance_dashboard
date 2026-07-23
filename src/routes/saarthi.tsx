@@ -102,7 +102,11 @@ function SaarthiPage() {
 
   return (
     <>
-      <AppHeader onBack={() => navigate({ to: "/" })} showHelp />
+      <AppHeader
+        title="Astro Performance Dashboard"
+        onBack={() => navigate({ to: "/" })}
+        showHelp={false}
+      />
       <SaarthiDashboard data={data} phoneNumber={session.get()} onLogout={logout} />
     </>
   );
