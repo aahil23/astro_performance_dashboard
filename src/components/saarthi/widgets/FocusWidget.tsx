@@ -246,7 +246,7 @@ function FocusGuideSheet({
         <div className="mt-4 space-y-2.5">
           {actions.map((action, index) => (
             <CoachingActionRow
-              key={`${action.actionId || action.text}-${index}`}
+              key={`${action.id || action.text}-${index}`}
               action={action}
               index={index}
             />
