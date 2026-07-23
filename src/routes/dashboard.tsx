@@ -167,7 +167,6 @@ function DashboardPage() {
       event_name: "session_started",
       session_id: sessionId,
       expert_id: String(data.expert.expert_id),
-      phone_number: String(data.expert.phone_number),
       metadata: buildSessionStartedMetadata(data),
     });
 
