@@ -137,8 +137,12 @@ function getDisplayedTarget({
 
 export function HeroWidget({ identity, hero }: Props) {
   const greeting = hero?.greeting ?? `Namaste, ${identity.expertName}`;
-  const priority =
+  const rawPriority =
     hero?.priorityLabel ?? identity.currentPriority ?? null;
+  const priority =
+    rawPriority && /^P[1-5]$/i.test(String(rawPriority).trim())
+      ? String(rawPriority).trim().toUpperCase()
+      : null;
 
   const currentSeconds = parseDurationToSeconds(hero?.currentAtt);
   const officialTargetSeconds = parseDurationToSeconds(hero?.targetAtt);
@@ -170,17 +174,21 @@ export function HeroWidget({ identity, hero }: Props) {
 
   return (
     <section className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 to-brand-soft p-4 shadow-sm">
-      <div className="flex items-center justify-between gap-3">
-        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-          {priority ?? "Your Priority"}
-        </span>
+      {(priority || displayedProgress !== null) ? (
+        <div className="flex items-center justify-between gap-3">
+          {priority ? (
+            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+              {priority}
+            </span>
+          ) : <span />}
 
-        {displayedProgress !== null ? (
-          <span className="text-xs font-medium text-muted-foreground">
-            Progress {Math.round(displayedProgress)}%
-          </span>
-        ) : null}
-      </div>
+          {displayedProgress !== null ? (
+            <span className="text-xs font-medium text-muted-foreground">
+              Progress {Math.round(displayedProgress)}%
+            </span>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="mt-3">
         <h2 className="text-xl font-bold leading-tight text-foreground">
