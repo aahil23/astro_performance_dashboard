@@ -27,6 +27,7 @@ interface SessionAnalyticsState {
   widgets_seen: string[];
   widget_count_seen: number;
   furthest_widget_seen: string;
+  furthest_widget_position: number;
   max_scroll_depth_pct: number;
   cta_clicks: Array<{ label: string; target: string; widget_id?: string }>;
   total_cta_clicks: number;
@@ -48,6 +49,7 @@ function createEmptyState(): SessionAnalyticsState {
     widgets_seen: [],
     widget_count_seen: 0,
     furthest_widget_seen: "",
+    furthest_widget_position: -1,
     max_scroll_depth_pct: 0,
     cta_clicks: [],
     total_cta_clicks: 0,
@@ -273,9 +275,14 @@ export function trackWidgetSeen(widgetId: string, position: number) {
     state.widgets_seen.push(widgetId);
     state.widget_count_seen = state.widgets_seen.length;
   }
-  state.furthest_widget_seen = widgetId;
-  if (widgetId === "personal_feedback") state.personal_feedback.widget_seen = true;
-  state.total_interactions += position >= 0 ? 0 : 0;
+  if (position > state.furthest_widget_position) {
+    state.furthest_widget_position = position;
+    state.furthest_widget_seen = widgetId;
+  }
+
+  if (widgetId === "personal_feedback") {
+    state.personal_feedback.widget_seen = true;
+  }
 }
 
 export function trackScrollDepth(depthPct: number) {
