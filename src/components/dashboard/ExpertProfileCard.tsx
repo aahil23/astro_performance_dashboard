@@ -41,18 +41,26 @@ export function ExpertProfileCard({
         </button>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border/50 pt-2.5 text-[11px] leading-4 text-muted-foreground">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border/50 pt-2.5 text-[11px] leading-4 text-muted-foreground">
         <span className="rounded-full bg-muted px-2 py-0.5 font-medium">
           Expert ID: {expert.expert_id}
         </span>
-
+          
+      {/* 
         {lastUpdated ? (
           <span className="text-right">
             Last updated: {lastUpdated} · Updates at 9:00 AM & 9:00 PM
           </span>
         ) : (
           <span>Updates at 9:00 AM & 9:00 PM daily</span>
-        )}
+        )} 
+      */}
+
+        {lastUpdated ? (
+          <span className="text-right">
+            Last updated: {lastUpdated}
+          </span>
+        ) : null}
       </div>
     </section>
   );
