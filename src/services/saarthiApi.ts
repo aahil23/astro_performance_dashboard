@@ -107,7 +107,6 @@ export async function fetchSaarthiExperience(
   if (!json.success || !json.data) {
     const msg = String(
       json.message ??
-      json.error ??
       "",
     ).toLowerCase();
 
