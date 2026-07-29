@@ -4,22 +4,35 @@ import type { SaarthiRanking } from "@/types/saarthi";
 
 interface Props {
   ranking?: SaarthiRanking | null;
+  currentPriority?: string | null;
   size?: "small" | "medium" | "large";
 }
 
-export function LeaderboardWidget({ ranking }: Props) {
-  if (!ranking || !isFiniteNumber(ranking.currentRank)) return null;
+export function LeaderboardWidget({
+  ranking,
+  currentPriority,
+}: Props) {
+  const priority = normalizePriority(currentPriority);
+
+  if (
+    !ranking ||
+    !isFiniteNumber(ranking.currentRank) ||
+    !priority
+  ) {
+    return null;
+  }
 
   return (
     <WidgetShell
-      title="Cohort Ranking"
-      subtitle="Your position among similar experts"
+      title={`${priority} Leaderboard`}
+      subtitle={`Your ranking among ${priority} experts`}
     >
       <div className="flex items-center justify-between gap-4 rounded-xl border border-border/60 bg-muted/20 px-4 py-3">
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold leading-none text-foreground">
             #{Math.round(Number(ranking.currentRank))}
           </span>
+
           {isFiniteNumber(ranking.cohortSize) ? (
             <span className="text-xs text-muted-foreground">
               out of {Math.round(Number(ranking.cohortSize))}
@@ -64,6 +77,20 @@ function Movement({ movement }: { movement?: number | null }) {
   );
 }
 
+function normalizePriority(
+  currentPriority?: string | null,
+): string | null {
+  const priority = String(currentPriority ?? "")
+    .trim()
+    .toUpperCase();
+
+  return /^P[1-5]$/.test(priority) ? priority : null;
+}
+
 function isFiniteNumber(value: unknown): boolean {
-  return value !== null && value !== undefined && Number.isFinite(Number(value));
+  return (
+    value !== null &&
+    value !== undefined &&
+    Number.isFinite(Number(value))
+  );
 }
