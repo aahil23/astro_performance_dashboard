@@ -174,6 +174,8 @@ function mapPerformance(raw: SaarthiRawData): SaarthiPerformance | null {
       yesterday: performance.talkTime.yesterday ?? null,
       average7d: performance.talkTime.sevenDayAvg ?? null,
       target: performance.talkTime.target ?? null,
+      comparisonMode:
+        performance.talkTime.comparisonMode ?? "yesterday",
       status: performance.talkTime.status ?? null,
       format: "seconds",
     });
@@ -188,6 +190,8 @@ function mapPerformance(raw: SaarthiRawData): SaarthiPerformance | null {
       average7d:
         performance.availability.onlineSevenDayAvgMin ?? null,
       target: performance.availability.onlineTargetMin ?? null,
+      comparisonMode:
+        performance.availability.comparisonMode ?? "target",
       status: performance.availability.status ?? null,
       format: "minutes",
     });
@@ -201,6 +205,8 @@ function mapPerformance(raw: SaarthiRawData): SaarthiPerformance | null {
       yesterday: performance.utilisation.yesterday ?? null,
       average7d: performance.utilisation.sevenDayAvg ?? null,
       target: performance.utilisation.target ?? null,
+      comparisonMode:
+        performance.utilisation.comparisonMode ?? "yesterday",
       status: performance.utilisation.status ?? null,
       format: "percent",
     });
@@ -218,11 +224,18 @@ function mapPerformance(raw: SaarthiRawData): SaarthiPerformance | null {
       today: performance.repeat.today ?? null,
       yesterday: performance.repeat.yesterday ?? null,
       average7d: performance.repeat.sevenDayAvg ?? null,
+      target: performance.repeat.target ?? null,
+      comparisonMode:
+        performance.repeat.comparisonMode ?? "yesterday",
       status: performance.repeat.status ?? null,
       format: displayMode,
       displayMode,
       eligibleUsersToday:
         performance.repeat.eligibleUsersToday ?? null,
+      eligibleUsersYesterday:
+        performance.repeat.eligibleUsersYesterday ?? null,
+      eligibleUsersSevenDay:
+        performance.repeat.eligibleUsersSevenDay ?? null,
     });
   }
 
@@ -233,6 +246,9 @@ function mapPerformance(raw: SaarthiRawData): SaarthiPerformance | null {
       today: performance.loyal.today ?? null,
       yesterday: performance.loyal.yesterday ?? null,
       average7d: performance.loyal.sevenDayAvg ?? null,
+      target: performance.loyal.target ?? null,
+      comparisonMode:
+        performance.loyal.comparisonMode ?? "yesterday",
       status: performance.loyal.status ?? null,
       format: "percent",
     });
@@ -245,9 +261,17 @@ function mapPerformance(raw: SaarthiRawData): SaarthiPerformance | null {
       today: performance.ratings.today ?? null,
       yesterday: performance.ratings.yesterday ?? null,
       average7d: performance.ratings.sevenDayAvg ?? null,
+      target: performance.ratings.target ?? null,
+      comparisonMode:
+        performance.ratings.comparisonMode ?? "yesterday",
       status: performance.ratings.status ?? null,
       format: "number",
       count: performance.ratings.countToday ?? null,
+      rawToday: performance.ratings.rawToday ?? null,
+      minimumRatingsToShow:
+        performance.ratings.minimumRatingsToShow ?? null,
+      hasEnoughRatingsToday:
+        performance.ratings.hasEnoughRatingsToday ?? null,
     });
   }
 
