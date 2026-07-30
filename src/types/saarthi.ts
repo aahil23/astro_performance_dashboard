@@ -83,8 +83,14 @@ export interface SaarthiPerformanceMetric {
     | "number"
     | "inr";
   displayMode?: "count" | "percent";
+  comparisonMode?: "target" | "yesterday" | "none";
   eligibleUsersToday?: number | null;
+  eligibleUsersYesterday?: number | null;
+  eligibleUsersSevenDay?: number | null;
   count?: number | null;
+  rawToday?: number | null;
+  minimumRatingsToShow?: number | null;
+  hasEnoughRatingsToday?: boolean | null;
   [key: string]: unknown;
 }
 
@@ -281,6 +287,7 @@ export interface SaarthiRawMetricBlock {
   yesterday?: number | null;
   sevenDayAvg?: number | null;
   target?: number | null;
+  comparisonMode?: "target" | "yesterday" | "none" | null;
   status?: string | null;
   [key: string]: unknown;
 }
@@ -312,9 +319,13 @@ export interface SaarthiRawPerformance {
 
   ratings?: {
     today?: number | null;
+    rawToday?: number | null;
     yesterday?: number | null;
     sevenDayAvg?: number | null;
-    comparison?: number | null;
+    target?: number | null;
+    comparisonMode?: "target" | "yesterday" | "none" | null;
+    minimumRatingsToShow?: number | null;
+    hasEnoughRatingsToday?: boolean | null;
     countToday?: number | null;
     countYesterday?: number | null;
     countSevenDay?: number | null;
