@@ -30,9 +30,14 @@ export interface SaarthiCoaching {
   actions: SaarthiCoachingAction[];
 }
 
+export type SaarthiFocusMetricType =
+  | "talk_time"
+  | "availability"
+  | "repeat";
+
 export interface SaarthiFocusItem {
   id?: string;
-  type?: string;
+  type?: SaarthiFocusMetricType;
   title?: string;
   body?: string;
   currentValue?: string | number | null;
@@ -249,7 +254,7 @@ export interface SaarthiRawCoaching {
 }
 
 export interface SaarthiRawFocusItem {
-  type?: string | null;
+  type?: SaarthiFocusMetricType | null;
   score?: number | null;
   status?: string | null;
   currentValue?: number | string | null;
