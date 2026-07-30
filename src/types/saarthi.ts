@@ -75,7 +75,13 @@ export interface SaarthiPerformanceMetric {
   target?: number | string | null;
   status?: string | null;
   unit?: string;
-  format?: "seconds" | "minutes" | "percent" | "count" | "number" | "inr";
+  format?:
+    | "seconds"
+    | "minutes"
+    | "percent"
+    | "count"
+    | "number"
+    | "inr";
   displayMode?: "count" | "percent";
   [key: string]: unknown;
 }
@@ -94,7 +100,10 @@ export interface SaarthiRanking {
   [key: string]: unknown;
 }
 
-export type SaarthiRiskState = "protected" | "watch" | "needs_attention";
+export type SaarthiRiskState =
+  | "protected"
+  | "watch"
+  | "needs_attention";
 
 export interface SaarthiRisk {
   state?: SaarthiRiskState | string | null;
@@ -130,14 +139,6 @@ export interface SaarthiHighlight {
   [key: string]: unknown;
 }
 
-export interface SaarthiPersonalFeedback {
-  id: string;
-  title: string;
-  text: string;
-  markdown: string;
-  version: number;
-}
-
 export interface SaarthiMantra {
   title?: string;
   message?: string;
@@ -146,7 +147,10 @@ export interface SaarthiMantra {
   [key: string]: unknown;
 }
 
-export type SaarthiWidgetSize = "large" | "medium" | "small";
+export type SaarthiWidgetSize =
+  | "large"
+  | "medium"
+  | "small";
 
 export type SaarthiWidgetId =
   | "focus"
@@ -156,8 +160,7 @@ export type SaarthiWidgetId =
   | "mantra"
   | "priority_journey"
   | "leaderboard"
-  | "risk_meter"
-  | "personal_feedback";
+  | "risk_meter";
 
 export interface SaarthiLayoutItem {
   id: SaarthiWidgetId | string;
@@ -177,7 +180,10 @@ export interface SaarthiData {
   journey?: SaarthiJourney | null;
   highlight?: SaarthiHighlight | null;
   mantra?: SaarthiMantra | null;
-  personalFeedback?: SaarthiPersonalFeedback | null;
+  personalFeedback?: {
+    version?: string | number | null;
+    [key: string]: unknown;
+  } | null;
   layout?: SaarthiLayoutItem[];
   metadata?: Record<string, unknown>;
 }
@@ -273,16 +279,18 @@ export interface SaarthiRawMetricBlock {
 
 export interface SaarthiRawPerformance {
   talkTime?: SaarthiRawMetricBlock | null;
-  pickup?: SaarthiRawMetricBlock | null;
+
+  utilisation?: SaarthiRawMetricBlock | null;
+
   availability?:
     | (SaarthiRawMetricBlock & {
         onlineTodayMin?: number | null;
         onlineYesterdayMin?: number | null;
         onlineSevenDayAvgMin?: number | null;
         onlineTargetMin?: number | null;
-        utilisationTodayPct?: number | null;
       })
     | null;
+
   repeat?:
     | (SaarthiRawMetricBlock & {
         displayMode?: "count" | "percent" | null;
@@ -291,7 +299,9 @@ export interface SaarthiRawPerformance {
         eligibleUsersSevenDay?: number | null;
       })
     | null;
+
   loyal?: SaarthiRawMetricBlock | null;
+
   ratings?: {
     today?: number | null;
     yesterday?: number | null;
@@ -309,15 +319,6 @@ export interface SaarthiRawRanking {
   cohortSize?: number | null;
   yesterdayRank?: number | null;
   movement?: number | null;
-}
-
-export interface SaarthiRawPersonalFeedback {
-  id?: string | null;
-  title?: string | null;
-  text?: string | null;
-  markdown?: string | null;
-  version?: number | null;
-  updatedAtIst?: string | null;
 }
 
 export interface SaarthiRawContent {
@@ -365,7 +366,7 @@ export interface SaarthiRawData {
   journey?: SaarthiRawJourney | null;
   highlight?: SaarthiRawContent | null;
   mantra?: SaarthiRawContent | null;
-  personalFeedback?: SaarthiRawPersonalFeedback | null;
+  personalFeedback?: Record<string, unknown> | null;
   layout?: SaarthiRawLayoutItem[] | null;
   metadata?: Record<string, unknown> | null;
 }
