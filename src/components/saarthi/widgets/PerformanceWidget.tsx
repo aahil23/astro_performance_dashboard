@@ -1,4 +1,5 @@
 import { WidgetShell } from "../WidgetShell";
+
 import type {
   SaarthiPerformance,
   SaarthiPerformanceMetric,
@@ -11,8 +12,8 @@ interface Props {
 
 const METRIC_ORDER = [
   "talk_time",
-  "pickup",
   "availability",
+  "utilisation",
   "repeat",
   "loyal",
   "rating",
@@ -20,12 +21,12 @@ const METRIC_ORDER = [
 
 const TARGET_BASED_METRICS = new Set([
   "talk_time",
-  "pickup",
   "availability",
 ]);
 
 export function PerformanceWidget({ performance }: Props) {
   const sourceMetrics = performance?.metrics ?? [];
+
   const metrics = METRIC_ORDER.map((key) =>
     sourceMetrics.find((metric) => metric.key === key),
   ).filter((metric): metric is SaarthiPerformanceMetric => Boolean(metric));
@@ -90,8 +91,8 @@ function MetricCard({ metric }: { metric: SaarthiPerformanceMetric }) {
 function getCompactLabel(metric: SaarthiPerformanceMetric): string {
   const labels: Record<string, string> = {
     talk_time: "Talk Time",
-    pickup: "Pickup",
     availability: "Online",
+    utilisation: "Utilisation",
     repeat: "Repeat",
     loyal: "Loyal",
     rating: "Rating",
@@ -102,6 +103,7 @@ function getCompactLabel(metric: SaarthiPerformanceMetric): string {
 
 function hasValue(value: unknown): boolean {
   if (value === null || value === undefined || value === "") return false;
+
   return Number.isFinite(Number(value));
 }
 
@@ -116,14 +118,19 @@ function formatMetricValue(
   switch (format) {
     case "seconds":
       return formatSeconds(numericValue);
+
     case "minutes":
       return formatMinutes(numericValue);
+
     case "percent":
       return `${formatNumber(numericValue)}%`;
+
     case "count":
       return `${formatNumber(numericValue)} users`;
+
     case "inr":
       return formatCurrency(numericValue);
+
     case "number":
     default:
       return formatNumber(numericValue);
@@ -137,6 +144,7 @@ function formatSeconds(value: number): string {
 
   if (minutes === 0) return `${remainingSeconds}s`;
   if (remainingSeconds === 0) return `${minutes}m`;
+
   return `${minutes}m ${remainingSeconds}s`;
 }
 
@@ -147,6 +155,7 @@ function formatMinutes(value: number): string {
 
   if (hours === 0) return `${remainingMinutes}m`;
   if (remainingMinutes === 0) return `${hours}h`;
+
   return `${hours}h ${remainingMinutes}m`;
 }
 
