@@ -19,11 +19,6 @@ const METRIC_ORDER = [
   "rating",
 ];
 
-const TARGET_BASED_METRICS = new Set([
-  "talk_time",
-  "availability",
-]);
-
 export function PerformanceWidget({ performance }: Props) {
   const sourceMetrics = performance?.metrics ?? [];
 
@@ -34,7 +29,10 @@ export function PerformanceWidget({ performance }: Props) {
   if (metrics.length === 0) return null;
 
   return (
-    <WidgetShell title="Performance" subtitle="Today vs target or recent trend">
+    <WidgetShell
+      title="Performance"
+      subtitle="Today's performance at a glance"
+    >
       <div className="grid grid-cols-3 gap-2">
         {metrics.slice(0, 6).map((metric) => (
           <MetricCard key={metric.key} metric={metric} />
@@ -45,14 +43,17 @@ export function PerformanceWidget({ performance }: Props) {
 }
 
 function MetricCard({ metric }: { metric: SaarthiPerformanceMetric }) {
-  const isTargetBased =
-    TARGET_BASED_METRICS.has(metric.key) && hasValue(metric.target);
-
   const today = formatMetricValue(metric.today, metric.format);
-  const comparisonLabel = isTargetBased ? "T" : "Y";
-  const comparisonValue = isTargetBased ? metric.target : metric.yesterday;
-  const comparison = formatMetricValue(comparisonValue, metric.format);
   const average7d = formatMetricValue(metric.average7d, metric.format);
+
+  const comparisonMode = resolveComparisonMode(metric);
+  const isTargetComparison = comparisonMode === "target";
+  const comparisonLabel = isTargetComparison ? "T" : "Y";
+  const comparisonValue = isTargetComparison
+    ? metric.target
+    : metric.yesterday;
+  const comparison = formatMetricValue(comparisonValue, metric.format);
+
   const status = formatStatus(metric.status);
 
   return (
@@ -66,9 +67,23 @@ function MetricCard({ metric }: { metric: SaarthiPerformanceMetric }) {
       </p>
 
       <div className="mt-1.5 space-y-0.5 text-[10px] leading-3 text-muted-foreground">
-        <p className="whitespace-nowrap">
-          <span className="font-medium text-blue-600">{comparisonLabel}</span>{" "}
-          <span className="font-semibold">{comparison}</span>
+        <p
+          className={`whitespace-nowrap ${
+            isTargetComparison ? "font-bold text-foreground" : ""
+          }`}
+        >
+          <span
+            className={
+              isTargetComparison
+                ? "font-bold text-blue-600"
+                : "font-medium text-blue-600"
+            }
+          >
+            {comparisonLabel}
+          </span>{" "}
+          <span className={isTargetComparison ? "font-bold" : "font-semibold"}>
+            {comparison}
+          </span>
         </p>
 
         <p className="whitespace-nowrap">
@@ -86,6 +101,16 @@ function MetricCard({ metric }: { metric: SaarthiPerformanceMetric }) {
       </p>
     </div>
   );
+}
+
+function resolveComparisonMode(
+  metric: SaarthiPerformanceMetric,
+): "target" | "yesterday" {
+  if (metric.comparisonMode === "target" && hasValue(metric.target)) {
+    return "target";
+  }
+
+  return "yesterday";
 }
 
 function getCompactLabel(metric: SaarthiPerformanceMetric): string {
@@ -182,6 +207,7 @@ function formatStatus(status: unknown): string {
     stable: "On track",
     needs_attention: "Needs attention",
     insufficient_data: "Not enough data",
+    not_enough_data: "Not enough data",
   };
 
   return labels[normalized] || "Not enough data";
@@ -196,6 +222,7 @@ function getStatusClass(status: unknown): string {
     stable: "text-amber-600",
     needs_attention: "text-orange-600",
     insufficient_data: "text-muted-foreground",
+    not_enough_data: "text-muted-foreground",
   };
 
   return classes[normalized] || "text-muted-foreground";
