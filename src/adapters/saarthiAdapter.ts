@@ -4,7 +4,6 @@ import type {
   SaarthiEarnings,
   SaarthiFocus,
   SaarthiFocusItem,
-  SaarthiFocusMetricType,
   SaarthiHero,
   SaarthiHighlight,
   SaarthiIdentity,
@@ -37,18 +36,6 @@ const KNOWN_WIDGET_IDS: SaarthiWidgetId[] = [
 ];
 
 const PRIORITY_LADDER = ["P5", "P4", "P3", "P2", "P1"];
-
-const FOCUS_METRIC_TYPES: SaarthiFocusMetricType[] = [
-  "talk_time",
-  "availability",
-  "repeat",
-];
-
-function isFocusMetricType(value: unknown): value is SaarthiFocusMetricType {
-  return FOCUS_METRIC_TYPES.includes(
-    String(value || "").trim().toLowerCase() as SaarthiFocusMetricType,
-  );
-}
 
 function isNil(value: unknown): value is null | undefined {
   return value === null || value === undefined;
@@ -122,13 +109,11 @@ function mapCoaching(
 function mapFocusItem(
   item: SaarthiRawFocusItem | null | undefined,
 ): SaarthiFocusItem | null {
-  if (!item || !isFocusMetricType(item.type)) return null;
-
-  const type = String(item.type).trim().toLowerCase() as SaarthiFocusMetricType;
+  if (!item) return null;
 
   return {
-    id: type,
-    type,
+    id: item.type ?? undefined,
+    type: item.type ?? undefined,
     title: item.title ?? undefined,
     body: item.body ?? undefined,
     currentValue: item.currentValue ?? null,
@@ -146,24 +131,11 @@ function mapFocus(raw: SaarthiRawData): SaarthiFocus | null {
 
   if (!focus) return null;
 
-  const primary = mapFocusItem(focus.primary);
-  const primaryType = primary?.type;
-
-  const secondary = (focus.secondary ?? [])
-    .map(mapFocusItem)
-    .filter((item): item is SaarthiFocusItem => item !== null)
-    .filter((item) => item.type !== primaryType)
-    .filter(
-      (item, index, items) =>
-        items.findIndex((candidate) => candidate.type === item.type) === index,
-    )
-    .slice(0, 2);
-
-  if (!primary && secondary.length === 0) return null;
-
   return {
-    primary,
-    secondary,
+    primary: mapFocusItem(focus.primary),
+    secondary: (focus.secondary ?? [])
+      .map(mapFocusItem)
+      .filter((item): item is SaarthiFocusItem => item !== null),
   };
 }
 
@@ -241,23 +213,17 @@ function mapPerformance(raw: SaarthiRawData): SaarthiPerformance | null {
   }
 
   if (performance.repeat) {
-    const displayMode =
-      performance.repeat.displayMode === "percent"
-        ? "percent"
-        : "count";
-
     metrics.push({
       key: "repeat",
       label: "Repeat Users",
       today: performance.repeat.today ?? null,
       yesterday: performance.repeat.yesterday ?? null,
       average7d: performance.repeat.sevenDayAvg ?? null,
-      target: performance.repeat.target ?? null,
-      comparisonMode:
-        performance.repeat.comparisonMode ?? "yesterday",
+      target: null,
+      comparisonMode: "yesterday",
       status: performance.repeat.status ?? null,
-      format: displayMode,
-      displayMode,
+      format: "count",
+      displayMode: "count",
       eligibleUsersToday:
         performance.repeat.eligibleUsersToday ?? null,
       eligibleUsersYesterday:
