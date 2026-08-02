@@ -18,6 +18,26 @@ interface Props {
   size?: "small" | "medium" | "large";
 }
 
+const METRIC_HEADINGS: Record<SaarthiFocusMetricType, string> = {
+  talk_time: "Average Talk Time",
+  availability: "Online Time",
+  repeat: "Repeat Users",
+};
+
+const DEFAULT_ACTION_TITLES: Record<SaarthiFocusMetricType, string> = {
+  talk_time: "Keep consultations useful for longer",
+  availability: "Stay online during demand hours",
+  repeat: "Bring more users back",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  above_target: "On track",
+  improving: "Improving",
+  stable: "Stable",
+  needs_attention: "Needs attention",
+  insufficient_data: "Not enough data",
+};
+
 const ALLOWED_FOCUS_TYPES: SaarthiFocusMetricType[] = [
   "talk_time",
   "availability",
@@ -338,19 +358,11 @@ function sanitizeFocusItem(
 }
 
 function getMetricType(item: SaarthiFocusItem): SaarthiFocusMetricType {
-  return String(item.type || item.id || "talk_time")
-    .trim()
-    .toLowerCase() as SaarthiFocusMetricType;
+  return item.type ?? "talk_time";
 }
 
 function getMetricHeading(type: SaarthiFocusMetricType): string {
-  const headings: Record<SaarthiFocusMetricType, string> = {
-    talk_time: "Average Talk Time",
-    availability: "Online Time",
-    repeat: "Repeat Users",
-  };
-
-  return headings[type];
+  return METRIC_HEADINGS[type];
 }
 
 function getActionTitle(
@@ -359,13 +371,7 @@ function getActionTitle(
 ): string {
   if (item.title && item.title !== "Today's Focus") return item.title;
 
-  const titles: Record<SaarthiFocusMetricType, string> = {
-    talk_time: "Keep consultations useful for longer",
-    availability: "Stay online during demand hours",
-    repeat: "Bring more users back",
-  };
-
-  return titles[type];
+  return DEFAULT_ACTION_TITLES[type];
 }
 
 function buildValueSummary(
@@ -445,15 +451,7 @@ function formatStatus(status: unknown): string | null {
   if (!status) return null;
 
   const normalized = String(status).trim().toLowerCase();
-  const labels: Record<string, string> = {
-    above_target: "On track",
-    improving: "Improving",
-    stable: "Stable",
-    needs_attention: "Needs attention",
-    insufficient_data: "Not enough data",
-  };
-
-  return labels[normalized] || toTitleCase(normalized.replace(/_/g, " "));
+  return STATUS_LABELS[normalized] || toTitleCase(normalized);
 }
 
 function toTitleCase(value: string): string {
