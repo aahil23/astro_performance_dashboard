@@ -16,7 +16,6 @@ export interface SaarthiHero {
   currentAtt?: string | number | null;
   targetAtt?: string | number | null;
   gap?: string | number | null;
-  [key: string]: unknown;
 }
 
 export interface SaarthiCoachingAction {
@@ -47,13 +46,11 @@ export interface SaarthiFocusItem {
   ctaLabel?: string;
   ctaTarget?: string;
   coaching?: SaarthiCoaching | null;
-  [key: string]: unknown;
 }
 
 export interface SaarthiFocus {
   primary?: SaarthiFocusItem | null;
   secondary?: SaarthiFocusItem[] | null;
-  [key: string]: unknown;
 }
 
 export interface SaarthiEarnings {
@@ -68,7 +65,6 @@ export interface SaarthiEarnings {
   potentialLoss?: number | null;
   currentPriorityLabel?: string;
   nextPriorityLabel?: string;
-  [key: string]: unknown;
 }
 
 export interface SaarthiPerformanceMetric {
@@ -79,15 +75,12 @@ export interface SaarthiPerformanceMetric {
   average7d?: number | string | null;
   target?: number | string | null;
   status?: string | null;
-  unit?: string;
   format?:
     | "seconds"
     | "minutes"
     | "percent"
     | "count"
-    | "number"
-    | "inr";
-  displayMode?: "count";
+    | "number";
   comparisonMode?: "target" | "yesterday" | "none";
   eligibleUsersToday?: number | null;
   eligibleUsersYesterday?: number | null;
@@ -96,13 +89,10 @@ export interface SaarthiPerformanceMetric {
   rawToday?: number | null;
   minimumRatingsToShow?: number | null;
   hasEnoughRatingsToday?: boolean | null;
-  [key: string]: unknown;
 }
 
 export interface SaarthiPerformance {
-  featuredKey?: string;
   metrics?: SaarthiPerformanceMetric[] | null;
-  [key: string]: unknown;
 }
 
 export interface SaarthiRanking {
@@ -110,7 +100,6 @@ export interface SaarthiRanking {
   yesterdayRank?: number | null;
   cohortSize?: number | null;
   movement?: number | null;
-  [key: string]: unknown;
 }
 
 export type SaarthiRiskState =
@@ -126,7 +115,6 @@ export interface SaarthiRisk {
   currentValue?: string | number | null;
   safeValue?: string | number | null;
   gap?: string | number | null;
-  [key: string]: unknown;
 }
 
 export interface SaarthiJourneyStep {
@@ -143,13 +131,11 @@ export interface SaarthiJourney {
   gap?: string | number | null;
   progressPercent?: number | null;
   message?: string;
-  [key: string]: unknown;
 }
 
 export interface SaarthiHighlight {
   title?: string;
   message?: string;
-  [key: string]: unknown;
 }
 
 export interface SaarthiPersonalFeedback {
@@ -165,7 +151,6 @@ export interface SaarthiMantra {
   message?: string;
   ctaLabel?: string;
   ctaTarget?: string;
-  [key: string]: unknown;
 }
 
 export type SaarthiWidgetSize =
@@ -313,7 +298,6 @@ export interface SaarthiRawPerformance {
 
   repeat?:
     | (SaarthiRawMetricBlock & {
-        displayMode?: "count" | null;
         eligibleUsersToday?: number | null;
         eligibleUsersYesterday?: number | null;
         eligibleUsersSevenDay?: number | null;
