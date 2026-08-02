@@ -87,7 +87,7 @@ export interface SaarthiPerformanceMetric {
     | "count"
     | "number"
     | "inr";
-  displayMode?: "count" | "percent";
+  displayMode?: "count";
   comparisonMode?: "target" | "yesterday" | "none";
   eligibleUsersToday?: number | null;
   eligibleUsersYesterday?: number | null;
@@ -313,7 +313,7 @@ export interface SaarthiRawPerformance {
 
   repeat?:
     | (SaarthiRawMetricBlock & {
-        displayMode?: "count" | "percent" | null;
+        displayMode?: "count" | null;
         eligibleUsersToday?: number | null;
         eligibleUsersYesterday?: number | null;
         eligibleUsersSevenDay?: number | null;
