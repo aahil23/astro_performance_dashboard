@@ -251,7 +251,6 @@ function mapPerformance(raw: SaarthiRawData): SaarthiPerformance | null {
       comparisonMode: "yesterday",
       status: performance.repeat.status ?? null,
       format: "count",
-      displayMode: "count",
       eligibleUsersToday:
         performance.repeat.eligibleUsersToday ?? null,
       eligibleUsersYesterday:
@@ -300,7 +299,6 @@ function mapPerformance(raw: SaarthiRawData): SaarthiPerformance | null {
   if (!metrics.length) return null;
 
   return {
-    featuredKey: raw.focus?.primary?.type ?? undefined,
     metrics,
   };
 }
