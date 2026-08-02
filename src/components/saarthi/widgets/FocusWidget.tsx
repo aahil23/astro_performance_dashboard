@@ -411,7 +411,7 @@ function formatMetricValue(
     case "availability":
       return formatMinutes(numericValue);
     case "repeat":
-      return `${formatNumber(numericValue)}%`;
+      return `${formatNumber(numericValue)} users`;
   }
 }
 
