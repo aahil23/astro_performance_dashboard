@@ -10,6 +10,33 @@ interface Props {
   size?: "small" | "medium" | "large";
 }
 
+const COMPACT_LABELS: Record<string, string> = {
+  talk_time: "Talk Time",
+  availability: "Online",
+  utilisation: "Utilisation",
+  repeat: "Repeat",
+  loyal: "Loyal",
+  rating: "Rating",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  above_target: "Above target",
+  improving: "Improving",
+  stable: "On track",
+  needs_attention: "Needs attention",
+  insufficient_data: "Not enough data",
+  not_enough_data: "Not enough data",
+};
+
+const STATUS_CLASSES: Record<string, string> = {
+  above_target: "text-emerald-600",
+  improving: "text-blue-600",
+  stable: "text-amber-600",
+  needs_attention: "text-orange-600",
+  insufficient_data: "text-muted-foreground",
+  not_enough_data: "text-muted-foreground",
+};
+
 const METRIC_ORDER = [
   "talk_time",
   "availability",
@@ -34,7 +61,7 @@ export function PerformanceWidget({ performance }: Props) {
       subtitle="Today's performance at a glance"
     >
       <div className="grid grid-cols-3 gap-2">
-        {metrics.slice(0, 6).map((metric) => (
+        {metrics.map((metric) => (
           <MetricCard key={metric.key} metric={metric} />
         ))}
       </div>
@@ -153,9 +180,6 @@ function formatMetricValue(
     case "count":
       return `${formatNumber(numericValue)} users`;
 
-    case "inr":
-      return formatCurrency(numericValue);
-
     case "number":
     default:
       return formatNumber(numericValue);
@@ -190,40 +214,14 @@ function formatNumber(value: number): string {
   }).format(value);
 }
 
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
 function formatStatus(status: unknown): string {
   const normalized = String(status || "").trim().toLowerCase();
 
-  const labels: Record<string, string> = {
-    above_target: "Above target",
-    improving: "Improving",
-    stable: "On track",
-    needs_attention: "Needs attention",
-    insufficient_data: "Not enough data",
-    not_enough_data: "Not enough data",
-  };
-
-  return labels[normalized] || "Not enough data";
+  return STATUS_LABELS[normalized] || "Not enough data";
 }
 
 function getStatusClass(status: unknown): string {
   const normalized = String(status || "").trim().toLowerCase();
 
-  const classes: Record<string, string> = {
-    above_target: "text-emerald-600",
-    improving: "text-blue-600",
-    stable: "text-amber-600",
-    needs_attention: "text-orange-600",
-    insufficient_data: "text-muted-foreground",
-    not_enough_data: "text-muted-foreground",
-  };
-
-  return classes[normalized] || "text-muted-foreground";
+  return STATUS_CLASSES[normalized] || "text-muted-foreground";
 }
