@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import logo from "@/assets/logo.svg";
 import { session } from "@/lib/session";
 import { dashboardStore } from "@/lib/dashboard-store";
-import { fetchDashboardByPhone } from "@/services/dashboardApi";
+import { fetchDashboardByPhone, fetchDashboardByUserId } from "@/services/dashboardApi";
 import { fetchSaarthiExperience, SaarthiApiError } from "@/services/saarthiApi";
 import { saarthiStore } from "@/lib/saarthi-store";
 
@@ -17,19 +17,26 @@ function LoadingScreen() {
 
   useEffect(() => {
     let active = true;
-    const phone = session.get();
-    if (!phone) {
+    const identifier = session.get();
+    const identifierType = session.getType();
+
+    if (!identifier) {
       navigate({ to: "/" });
       return;
     }
-    fetchDashboardByPhone(phone)
+
+    const fetchPromise =
+      identifierType === "user_id"
+        ? fetchDashboardByUserId(identifier)
+        : fetchDashboardByPhone(identifier);
+
+    fetchPromise
       .then(async (data) => {
         if (!active) return;
         dashboardStore.set(data);
 
         const route = (data.expert.dashboard_route ?? "").toLowerCase();
-        const variant = (data.expert.variant ?? "").toLowerCase();
-        const shouldUseSaarthi = route === "saarthi" || (!route && variant === "treatment");
+        const shouldUseSaarthi = route === "saarthi";
 
         if (shouldUseSaarthi) {
           try {
