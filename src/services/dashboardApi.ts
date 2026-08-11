@@ -90,7 +90,7 @@ export const SECTION_TITLES: Record<SectionKey, string> = {
   engagement_overview: "Utilisation Overview",
 };
 
-export const METRIC_CONFIG: Record
+export const METRIC_CONFIG: Record<
   string,
   { title: string; description: string }
 > = {
