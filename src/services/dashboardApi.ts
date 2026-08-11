@@ -28,6 +28,8 @@ export interface ApiExpert {
   name: string;
   phone_number: string;
   primary_language?: string;
+  variant?: string;
+  dashboard_version?: string;
   current_priority?: string;
   next_priority?: string;
   dashboard_route?: string;
@@ -90,7 +92,7 @@ export const SECTION_TITLES: Record<SectionKey, string> = {
   engagement_overview: "Utilisation Overview",
 };
 
-export const METRIC_CONFIG: Record
+export const METRIC_CONFIG: Record<
   string,
   { title: string; description: string }
 > = {
