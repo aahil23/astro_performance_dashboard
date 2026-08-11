@@ -17,8 +17,6 @@ const ACTIVITY_EVENTS = ["mousemove", "scroll", "keydown", "touchstart", "click"
 interface SessionMeta {
   expert_id: string;
   phone_number: string;
-  variant?: string;
-  dashboard_version?: string;
   current_priority?: string;
   primary_focus?: string;
 }
@@ -181,8 +179,6 @@ export interface AnalyticsEventInput {
   event_timestamp_ist?: string;
   expert_id?: string;
   session_id?: string;
-  variant?: string;
-  dashboard_version?: string;
   current_priority?: string;
   duration_minutes?: number | "";
   metadata?: Record<string, unknown>;
@@ -203,8 +199,6 @@ function buildRequestBody(input: AnalyticsEventInput) {
       event_timestamp_ist: input.event_timestamp_ist ?? new Date().toISOString(),
       expert_id: expertId,
       session_id: sessionId,
-      variant: input.variant ?? meta?.variant ?? "treatment",
-      dashboard_version: input.dashboard_version ?? meta?.dashboard_version ?? "saarthi_v1",
       current_priority: input.current_priority ?? meta?.current_priority ?? "",
       event_name: input.event_name,
       duration_minutes: input.duration_minutes ?? "",
