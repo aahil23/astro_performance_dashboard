@@ -1,5 +1,5 @@
 import { createFileRoute, useLocation, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Phone } from "lucide-react";
 import logo from "@/assets/logo.svg";
 import { session } from "@/lib/session";
@@ -19,6 +19,20 @@ function Index() {
   const [phone, setPhone] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Auto-login via ?user_id=... query param (used by in-app banner links)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get("user_id");
+
+    if (userId) {
+      dashboardStore.clear();
+      session.loginWithUserId(userId);
+      navigate({ to: "/loading" });
+    }
+  }, [navigate]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
