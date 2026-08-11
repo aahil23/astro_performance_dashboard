@@ -24,13 +24,12 @@ export interface ApiMetric {
 
 export interface ApiExpert {
   expert_id: string;
+  user_id?: string;
   name: string;
   phone_number: string;
   primary_language?: string;
-  variant?: string;
   current_priority?: string;
   next_priority?: string;
-  dashboard_version?: string;
   dashboard_route?: string;
 }
 
@@ -91,7 +90,7 @@ export const SECTION_TITLES: Record<SectionKey, string> = {
   engagement_overview: "Utilisation Overview",
 };
 
-export const METRIC_CONFIG: Record<
+export const METRIC_CONFIG: Record
   string,
   { title: string; description: string }
 > = {
@@ -267,14 +266,28 @@ export class DashboardApiError extends Error {
 export async function fetchDashboardByPhone(
   phoneNumber: string,
 ): Promise<DashboardResponse> {
+  return fetchDashboard(
+    `${DASHBOARD_API_URL}?action=getDashboardByPhone&phone_number=${encodeURIComponent(
+      phoneNumber,
+    )}`,
+  );
+}
+
+export async function fetchDashboardByUserId(
+  userId: string,
+): Promise<DashboardResponse> {
+  return fetchDashboard(
+    `${DASHBOARD_API_URL}?action=getDashboardByUserId&user_id=${encodeURIComponent(
+      userId,
+    )}`,
+  );
+}
+
+async function fetchDashboard(url: string): Promise<DashboardResponse> {
   let res: Response;
 
   try {
-    res = await fetch(
-      `${DASHBOARD_API_URL}?action=getDashboardByPhone&phone_number=${encodeURIComponent(
-        phoneNumber,
-      )}`,
-    );
+    res = await fetch(url);
   } catch {
     throw new DashboardApiError(
       "Something went wrong. Please try again.",
@@ -299,7 +312,7 @@ export async function fetchDashboardByPhone(
 
   if (msg.includes("not found")) {
     throw new DashboardApiError(
-      "No dashboard found for this mobile number.",
+      "No dashboard found for this account.",
       "not_found",
     );
   }
