@@ -4,7 +4,7 @@ import logo from "@/assets/logo.svg";
 import { session } from "@/lib/session";
 import { dashboardStore } from "@/lib/dashboard-store";
 import { fetchDashboardByPhone, fetchDashboardByUserId } from "@/services/dashboardApi";
-import { fetchSaarthiExperience, SaarthiApiError } from "@/services/saarthiApi";
+import { fetchSaarthiIdentity, SaarthiApiError } from "@/services/saarthiApi";
 import { saarthiStore } from "@/lib/saarthi-store";
 
 export const Route = createFileRoute("/loading")({
@@ -25,42 +25,42 @@ function LoadingScreen() {
       return;
     }
 
-    const fetchPromise =
-      identifierType === "user_id"
-        ? fetchDashboardByUserId(identifier)
-        : fetchDashboardByPhone(identifier);
-
-    fetchPromise
-      .then(async (data) => {
+    // Saarthi now owns identity resolution directly (its own login_creds
+    // sheet) -- one call gets both dashboard_route and, when applicable,
+    // the full dashboard payload. This replaces the old two-step flow
+    // (v1 Login Sheet -> Saarthi) for the common case.
+    fetchSaarthiIdentity(identifierType, identifier)
+      .then((identity) => {
         if (!active) return;
-        dashboardStore.set(data);
 
-        const route = (data.expert.dashboard_route ?? "").toLowerCase();
-        const shouldUseSaarthi = route === "saarthi";
-
-        if (shouldUseSaarthi) {
-          try {
-            const saarthi = await fetchSaarthiExperience(data.expert.expert_id);
-            if (!active) return;
-            saarthiStore.set(saarthi);
-            navigate({ to: "/saarthi" });
-          } catch (err) {
-            if (!active) return;
-            const msg =
-              err instanceof SaarthiApiError
-                ? err.message
-                : "Something went wrong. Please try again.";
-            setError(msg);
-          }
+        if (identity.dashboardRoute === "saarthi" && identity.dashboard) {
+          saarthiStore.set(identity.dashboard);
+          navigate({ to: "/saarthi" });
           return;
         }
 
-        navigate({ to: "/dashboard" });
+        // Fallback: expert's dashboard_route is still "dashboard" --
+        // resolve via the v1 Login Sheet API as before.
+        const fetchPromise =
+          identifierType === "user_id"
+            ? fetchDashboardByUserId(identifier)
+            : fetchDashboardByPhone(identifier);
+
+        return fetchPromise.then((data) => {
+          if (!active) return;
+          dashboardStore.set(data);
+          navigate({ to: "/dashboard" });
+        });
       })
-      .catch((e: Error) => {
+      .catch((e: unknown) => {
         if (!active) return;
-        setError(e.message || "Something went wrong. Please try again.");
+        const msg =
+          e instanceof SaarthiApiError || e instanceof Error
+            ? e.message
+            : "Something went wrong. Please try again.";
+        setError(msg);
       });
+
     return () => {
       active = false;
     };
