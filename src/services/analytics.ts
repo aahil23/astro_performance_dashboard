@@ -19,6 +19,8 @@ interface SessionMeta {
   phone_number: string;
   current_priority?: string;
   primary_focus?: string;
+  variant?: string;
+  dashboard_version?: string;
 }
 
 interface SessionAnalyticsState {
@@ -180,6 +182,8 @@ export interface AnalyticsEventInput {
   expert_id?: string;
   session_id?: string;
   current_priority?: string;
+  variant?: string;
+  dashboard_version?: string;
   duration_minutes?: number | "";
   metadata?: Record<string, unknown>;
 }
