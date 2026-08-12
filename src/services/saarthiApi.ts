@@ -2,7 +2,7 @@ import { adaptSaarthiExperience } from "@/adapters/saarthiAdapter";
 import type { SaarthiData, SaarthiRawEnvelope } from "@/types/saarthi";
 
 export const SAARTHI_API_URL =
-  "https://script.google.com/macros/s/AKfycbwf_zlAdMZqx073oUSR1yKgpXygCwe_O_QWtFybcBChcqynxt_mG-9o_8sjy9rar00xVQ/exec";
+  "https://script.google.com/macros/s/AKfycbyA_ze-ZViNOOxcw7oCLBhzkHtndF9GWpoWjPg9kxUphuzmT42j26BxWson4riSkRGyNQ/exec";
 
 export const SAARTHI_API_TOKEN =
   "8b7f3a1c5d9e2f4a6b8c0d1e3f5g7h9j";
@@ -133,6 +133,133 @@ export async function fetchSaarthiExperience(
   return adaptSaarthiExperience(
     json.data,
   );
+}
+
+export interface SaarthiIdentity {
+  expertId: string;
+  dashboardRoute: "saarthi" | "dashboard";
+  dashboard: SaarthiData | null;
+}
+
+/**
+ * Resolves identity (by user_id or phone) against the Saarthi project's
+ * own login_creds sheet, and — when the expert's dashboard_route is
+ * "saarthi" — returns the full dashboard payload in the same response.
+ * This replaces the old two-step flow (v1 Login Sheet -> Saarthi) with
+ * a single round trip for the common case.
+ */
+export async function fetchSaarthiIdentity(
+  identifierType: "user_id" | "phone",
+  value: string,
+  signal?: AbortSignal,
+): Promise<SaarthiIdentity> {
+  const action =
+    identifierType === "user_id"
+      ? "identityByUserId"
+      : "identityByPhone";
+
+  const paramKey =
+    identifierType === "user_id"
+      ? "user_id"
+      : "phone_number";
+
+  const params = new URLSearchParams({
+    action,
+    [paramKey]: value,
+    token: SAARTHI_API_TOKEN,
+  });
+
+  let res: Response;
+
+  try {
+    res = await fetch(
+      `${SAARTHI_API_URL}?${params.toString()}`,
+      { signal },
+    );
+  } catch (err) {
+    if (
+      err instanceof DOMException &&
+      err.name === "AbortError"
+    ) {
+      throw err;
+    }
+
+    throw new SaarthiApiError(
+      "Something went wrong. Please try again.",
+      "network",
+    );
+  }
+
+  if (!res.ok) {
+    throw new SaarthiApiError(
+      "Something went wrong. Please try again.",
+      "network",
+    );
+  }
+
+  let json: unknown;
+
+  try {
+    json = await res.json();
+  } catch {
+    throw new SaarthiApiError(
+      "Something went wrong. Please try again.",
+      "network",
+    );
+  }
+
+  if (!isRawEnvelope(json)) {
+    throw new SaarthiApiError(
+      "Something went wrong. Please try again.",
+      "invalid_response",
+    );
+  }
+
+  if (!json.success || !json.data) {
+    const msg = String(
+      json.message ?? "",
+    ).toLowerCase();
+
+    if (msg.includes("not found")) {
+      throw new SaarthiApiError(
+        "No dashboard found for this account.",
+        "not_found",
+      );
+    }
+
+    if (msg.includes("disabled")) {
+      throw new SaarthiApiError(
+        "Your dashboard access is currently disabled.",
+        "disabled",
+      );
+    }
+
+    throw new SaarthiApiError(
+      "Something went wrong. Please try again.",
+      "network",
+    );
+  }
+
+  const data = json.data as {
+    expertId: string;
+    dashboardRoute: string;
+    dashboard: unknown;
+  };
+
+  return {
+    expertId: String(data.expertId),
+    dashboardRoute:
+      data.dashboardRoute === "saarthi"
+        ? "saarthi"
+        : "dashboard",
+    dashboard: data.dashboard
+      ? adaptSaarthiExperience(
+          data.dashboard as Parameters<
+            typeof adaptSaarthiExperience
+          >[0],
+        )
+      : null,
+  };
 }
 
 /**
