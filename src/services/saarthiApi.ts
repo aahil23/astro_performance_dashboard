@@ -324,7 +324,7 @@ async function fetchSaarthiIdentityOnce(
     );
   }
 
-  const data = json.data as {
+  const data = json.data as unknown as {
     expertId: string;
     dashboardRoute: string;
     dashboard: unknown;
