@@ -41,7 +41,7 @@ function SaarthiPage() {
     if (!data) return;
 
     const identity = data.identity;
-    const phoneNumber = session.get() ?? "";
+    const phoneNumber = session.getPhoneNumber();
     const feedback = data.personalFeedback;
     const feedbackIsNew = feedback
       ? isPersonalFeedbackNew(identity.expertId, feedback.version)
@@ -107,7 +107,11 @@ function SaarthiPage() {
         onBack={() => navigate({ to: "/" })}
         showHelp={false}
       />
-      <SaarthiDashboard data={data} phoneNumber={session.get()} onLogout={logout} />
+      <SaarthiDashboard
+        data={data}
+        phoneNumber={session.getPhoneNumber()}
+        onLogout={logout}
+      />
     </>
   );
 }
