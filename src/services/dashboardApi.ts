@@ -260,28 +260,70 @@ export class DashboardApiError extends Error {
   constructor(
     message: string,
     public kind: "not_found" | "disabled" | "network",
+    public retryable = false,
   ) {
     super(message);
   }
 }
 
+const RETRY_DELAYS_MS = [800, 1600];
+
+/**
+ * Runs `attempt` up to 3 times, retrying only transient failures
+ * (network errors / non-2xx responses) with exponential backoff.
+ */
+async function withRetries<T>(
+  label: string,
+  attempt: () => Promise<T>,
+): Promise<T> {
+  for (let i = 0; i <= RETRY_DELAYS_MS.length; i++) {
+    try {
+      return await attempt();
+    } catch (err) {
+      const retryable =
+        err instanceof DashboardApiError ? err.retryable : true;
+
+      console.warn(`[${label}] attempt ${i + 1} failed`, {
+        retryable,
+        kind: err instanceof DashboardApiError ? err.kind : undefined,
+        error: err instanceof Error ? err.message : String(err),
+      });
+
+      if (!retryable || i === RETRY_DELAYS_MS.length) throw err;
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, RETRY_DELAYS_MS[i]),
+      );
+    }
+  }
+
+  throw new DashboardApiError(
+    "Something went wrong. Please try again.",
+    "network",
+  );
+}
+
 export async function fetchDashboardByPhone(
   phoneNumber: string,
 ): Promise<DashboardResponse> {
-  return fetchDashboard(
-    `${DASHBOARD_API_URL}?action=getDashboardByPhone&phone_number=${encodeURIComponent(
-      phoneNumber,
-    )}`,
+  return withRetries("dashboard:byPhone", () =>
+    fetchDashboard(
+      `${DASHBOARD_API_URL}?action=getDashboardByPhone&phone_number=${encodeURIComponent(
+        phoneNumber,
+      )}`,
+    ),
   );
 }
 
 export async function fetchDashboardByUserId(
   userId: string,
 ): Promise<DashboardResponse> {
-  return fetchDashboard(
-    `${DASHBOARD_API_URL}?action=getDashboardByUserId&user_id=${encodeURIComponent(
-      userId,
-    )}`,
+  return withRetries("dashboard:byUserId", () =>
+    fetchDashboard(
+      `${DASHBOARD_API_URL}?action=getDashboardByUserId&user_id=${encodeURIComponent(
+        userId,
+      )}`,
+    ),
   );
 }
 
@@ -294,6 +336,15 @@ async function fetchDashboard(url: string): Promise<DashboardResponse> {
     throw new DashboardApiError(
       "Something went wrong. Please try again.",
       "network",
+      true,
+    );
+  }
+
+  if (!res.ok) {
+    throw new DashboardApiError(
+      `Something went wrong. Please try again. (HTTP ${res.status})`,
+      "network",
+      true,
     );
   }
 
