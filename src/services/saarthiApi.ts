@@ -15,75 +15,9 @@ export class SaarthiApiError extends Error {
       | "disabled"
       | "network"
       | "invalid_response",
-    public retryable = false,
   ) {
     super(message);
   }
-}
-
-const RETRY_DELAYS_MS = [800, 1600];
-
-function sleep(ms: number) {
-  return new Promise((resolve) =>
-    setTimeout(resolve, ms),
-  );
-}
-
-/**
- * Runs `attempt` up to 3 times, retrying only on transient failures
- * (network errors / non-2xx responses), with exponential backoff.
- */
-async function withRetries<T>(
-  label: string,
-  attempt: () => Promise<T>,
-): Promise<T> {
-  let lastError: unknown;
-
-  for (let i = 0; i <= RETRY_DELAYS_MS.length; i++) {
-    try {
-      return await attempt();
-    } catch (err) {
-      if (
-        err instanceof DOMException &&
-        err.name === "AbortError"
-      ) {
-        throw err;
-      }
-
-      lastError = err;
-
-      const retryable =
-        err instanceof SaarthiApiError
-          ? err.retryable
-          : true;
-
-      console.warn(
-        `[${label}] attempt ${i + 1} failed`,
-        {
-          retryable,
-          error:
-            err instanceof Error
-              ? err.message
-              : String(err),
-          status:
-            err instanceof SaarthiApiError
-              ? err.kind
-              : undefined,
-        },
-      );
-
-      if (
-        !retryable ||
-        i === RETRY_DELAYS_MS.length
-      ) {
-        throw err;
-      }
-
-      await sleep(RETRY_DELAYS_MS[i]);
-    }
-  }
-
-  throw lastError;
 }
 
 function isRawEnvelope(
@@ -142,15 +76,13 @@ export async function fetchSaarthiExperience(
     throw new SaarthiApiError(
       "Something went wrong. Please try again.",
       "network",
-      true,
     );
   }
 
   if (!res.ok) {
     throw new SaarthiApiError(
-      `Something went wrong. Please try again. (HTTP ${res.status})`,
+      "Something went wrong. Please try again.",
       "network",
-      true,
     );
   }
 
@@ -205,6 +137,7 @@ export async function fetchSaarthiExperience(
 
 export interface SaarthiIdentity {
   expertId: string;
+  phoneNumber: string;
   dashboardRoute: "saarthi" | "dashboard";
   dashboard: SaarthiData | null;
 }
@@ -221,15 +154,34 @@ export async function fetchSaarthiIdentity(
   value: string,
   signal?: AbortSignal,
 ): Promise<SaarthiIdentity> {
-  // Apps Script's /exec URL can transiently 404 right after a new
-  // deployment, so transient failures are retried with backoff.
-  return withRetries("saarthi:identity", () =>
-    fetchSaarthiIdentityOnce(
+  try {
+    return await fetchSaarthiIdentityOnce(
       identifierType,
       value,
       signal,
-    ),
-  );
+    );
+  } catch (err) {
+    if (
+      err instanceof DOMException &&
+      err.name === "AbortError"
+    ) {
+      throw err;
+    }
+
+    // Apps Script's /exec URL can transiently 404 right after a new
+    // deployment (its internal redirect briefly points at a stale
+    // version hash). A single short-delay retry resolves this without
+    // surfacing an error to the user for what is usually a ~1s blip.
+    await new Promise((resolve) =>
+      setTimeout(resolve, 900),
+    );
+
+    return fetchSaarthiIdentityOnce(
+      identifierType,
+      value,
+      signal,
+    );
+  }
 }
 
 async function fetchSaarthiIdentityOnce(
@@ -271,15 +223,13 @@ async function fetchSaarthiIdentityOnce(
     throw new SaarthiApiError(
       "Something went wrong. Please try again.",
       "network",
-      true,
     );
   }
 
   if (!res.ok) {
     throw new SaarthiApiError(
-      `Something went wrong. Please try again. (HTTP ${res.status})`,
+      "Something went wrong. Please try again.",
       "network",
-      true,
     );
   }
 
@@ -326,14 +276,16 @@ async function fetchSaarthiIdentityOnce(
     );
   }
 
-  const data = json.data as unknown as {
+  const data = json.data as {
     expertId: string;
+    phoneNumber?: string;
     dashboardRoute: string;
     dashboard: unknown;
   };
 
   return {
     expertId: String(data.expertId),
+    phoneNumber: String(data.phoneNumber ?? ""),
     dashboardRoute:
       data.dashboardRoute === "saarthi"
         ? "saarthi"
