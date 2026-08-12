@@ -23,9 +23,9 @@ export function ExpertProfileCard({
             <h1 className="truncate text-base font-bold leading-tight text-foreground">
               {expert.name}
             </h1>
-            {expert.phone_number ? (
+            {/^\d{10}$/.test(String(expert.phone_number ?? "").replace(/\D/g, "")) ? (
               <p className="mt-0.5 text-xs text-muted-foreground">
-                +91 {expert.phone_number}
+                +91 {String(expert.phone_number).replace(/\D/g, "").slice(-10)}
               </p>
             ) : null}
           </div>

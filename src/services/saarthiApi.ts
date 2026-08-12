@@ -1,4 +1,5 @@
 import { adaptSaarthiExperience } from "@/adapters/saarthiAdapter";
+import { normalizePhoneNumber } from "@/lib/session";
 import type { SaarthiData, SaarthiRawEnvelope } from "@/types/saarthi";
 
 export const SAARTHI_API_URL =
@@ -276,16 +277,21 @@ async function fetchSaarthiIdentityOnce(
     );
   }
 
-  const data = json.data as {
+  const data = json.data as unknown as {
     expertId: string;
-    phoneNumber?: string;
+    phoneNumber?: string | number;
+    phone_number?: string | number;
+    mobile?: string | number;
     dashboardRoute: string;
     dashboard: unknown;
   };
 
+  const rawPhone =
+    data.phoneNumber ?? data.phone_number ?? data.mobile ?? "";
+
   return {
     expertId: String(data.expertId),
-    phoneNumber: String(data.phoneNumber ?? ""),
+    phoneNumber: normalizePhoneNumber(rawPhone),
     dashboardRoute:
       data.dashboardRoute === "saarthi"
         ? "saarthi"
