@@ -33,6 +33,8 @@ function LoadingScreen() {
       .then((identity) => {
         if (!active) return;
 
+        session.setPhoneNumber(identity.phoneNumber);
+
         if (identity.dashboardRoute === "saarthi" && identity.dashboard) {
           saarthiStore.set(identity.dashboard);
           navigate({ to: "/saarthi" });
