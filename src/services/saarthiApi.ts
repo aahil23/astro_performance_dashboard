@@ -153,6 +153,41 @@ export async function fetchSaarthiIdentity(
   value: string,
   signal?: AbortSignal,
 ): Promise<SaarthiIdentity> {
+  try {
+    return await fetchSaarthiIdentityOnce(
+      identifierType,
+      value,
+      signal,
+    );
+  } catch (err) {
+    if (
+      err instanceof DOMException &&
+      err.name === "AbortError"
+    ) {
+      throw err;
+    }
+
+    // Apps Script's /exec URL can transiently 404 right after a new
+    // deployment (its internal redirect briefly points at a stale
+    // version hash). A single short-delay retry resolves this without
+    // surfacing an error to the user for what is usually a ~1s blip.
+    await new Promise((resolve) =>
+      setTimeout(resolve, 900),
+    );
+
+    return fetchSaarthiIdentityOnce(
+      identifierType,
+      value,
+      signal,
+    );
+  }
+}
+
+async function fetchSaarthiIdentityOnce(
+  identifierType: "user_id" | "phone",
+  value: string,
+  signal?: AbortSignal,
+): Promise<SaarthiIdentity> {
   const action =
     identifierType === "user_id"
       ? "identityByUserId"
