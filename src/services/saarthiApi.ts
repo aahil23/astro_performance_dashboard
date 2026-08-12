@@ -271,13 +271,15 @@ async function fetchSaarthiIdentityOnce(
     throw new SaarthiApiError(
       "Something went wrong. Please try again.",
       "network",
+      true,
     );
   }
 
   if (!res.ok) {
     throw new SaarthiApiError(
-      "Something went wrong. Please try again.",
+      `Something went wrong. Please try again. (HTTP ${res.status})`,
       "network",
+      true,
     );
   }
 
